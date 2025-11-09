@@ -2,7 +2,7 @@
 //  User Service
 //
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User, Role } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 

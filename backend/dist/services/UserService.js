@@ -22,7 +22,7 @@ class UserService {
                 email: data.email,
                 name: data.name,
                 password: hashedPassword,
-                role: Role.CUSTOMER,
+                role: client_1.Role.CUSTOMER,
             },
         });
     }
