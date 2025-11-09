@@ -3,7 +3,7 @@
 //
 
 import { Request, Response, NextFunction } from "express";
-import { Role } from "../generated/prisma";
+import { Role } from "@prisma/client";
 
 export const roleMiddleware = (allowedRoles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {

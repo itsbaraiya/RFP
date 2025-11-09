@@ -2,7 +2,7 @@
 //  RFP Service
 //
 
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "@prisma/client";
 import path from "path";
 import PDFParser from "pdf2json";
 import OpenAI from "openai";

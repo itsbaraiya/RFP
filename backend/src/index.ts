@@ -4,7 +4,7 @@
 // 
 
 import app from "./app";
-import { PrismaClient } from "./generated/prisma";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5001;

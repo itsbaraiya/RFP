@@ -4,8 +4,8 @@
 //
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
-const prisma_1 = require("../generated/prisma");
-const prisma = new prisma_1.PrismaClient();
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
 const AuthService_1 = require("../services/AuthService");
 class AuthController {
     static async register(req, res) {

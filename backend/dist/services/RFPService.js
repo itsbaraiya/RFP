@@ -7,13 +7,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RFPService = void 0;
-const prisma_1 = require("../generated/prisma");
+const client_1 = require("@prisma/client");
 const path_1 = __importDefault(require("path"));
 const pdf2json_1 = __importDefault(require("pdf2json"));
 const openai_1 = __importDefault(require("openai"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const prisma = new prisma_1.PrismaClient();
+const prisma = new client_1.PrismaClient();
 const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
 class RFPService {
     // ==============================

@@ -2,7 +2,7 @@
 //  Auth Service
 //
 
-import { PrismaClient, Role } from "../generated/prisma";
+import { PrismaClient, Role } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 

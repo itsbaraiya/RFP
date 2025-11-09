@@ -3,7 +3,7 @@
 //
 
 import { Request, Response } from "express";
-import { Role } from "../generated/prisma";
+import { Role } from "@prisma/client";
 
 export class DashboardController {
   static getDashboard(req: Request, res: Response) {

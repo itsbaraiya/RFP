@@ -7,10 +7,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
-const prisma_1 = require("../generated/prisma");
+const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prisma = new prisma_1.PrismaClient();
+const prisma = new client_1.PrismaClient();
 const SALT_ROUNDS = 10;
 class AuthService {
     static async register(data) {
@@ -23,7 +23,7 @@ class AuthService {
                 name: data.name,
                 email: data.email,
                 password: hashedPassword,
-                role: prisma_1.Role.CUSTOMER,
+                role: client_1.Role.CUSTOMER,
             },
         });
         const token = jsonwebtoken_1.default.sign({ id: newUser.id, email: newUser.email, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: "1d" });

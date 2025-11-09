@@ -7,10 +7,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
-const prisma_1 = require("../generated/prisma");
+const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prisma = new prisma_1.PrismaClient();
+const prisma = new client_1.PrismaClient();
 class UserService {
     static async getAllUsers() {
         return prisma.user.findMany();
@@ -22,7 +22,7 @@ class UserService {
                 email: data.email,
                 name: data.name,
                 password: hashedPassword,
-                role: prisma_1.Role.CUSTOMER,
+                role: Role.CUSTOMER,
             },
         });
     }
