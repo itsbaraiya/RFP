@@ -12,5 +12,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["src", "prisma", "scripts"]
+  "include": ["src"],
+  "exclude": ["prisma", "scripts"]
 }
