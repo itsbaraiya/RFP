@@ -11,5 +11,6 @@
     "strictPropertyInitialization": false,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["src", "prisma", "scripts"]
 }
