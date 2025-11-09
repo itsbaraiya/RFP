@@ -6,10 +6,16 @@ import { AuthProvider } from "./context/AuthContext";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import EditProfile from "./pages/EditProfile";
+import type { ReactNode } from "react"; // ✅ use type import for TS 5+ with verbatimModuleSyntax
 
 // Wrapper component to handle conditional header rendering
-const AppLayout: React.FC = ({ children }) => {
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
+
   // Pages where header should be hidden
   const hideHeaderPaths = ["/login", "/register", "/dashboard"];
   const showHeader = !hideHeaderPaths.includes(location.pathname);

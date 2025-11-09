@@ -1,10 +1,12 @@
 // 
 // AuthContext
 // 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 
 export interface User {
-  updatedAt: number;
+  updatedAt: string | number;
   id: number;
   name: string;
   email: string;
@@ -12,6 +14,7 @@ export interface User {
   status?: string;
   isBusy?: boolean;
   role?: string;
+  designation?: string;
 }
 
 interface AuthContextType {

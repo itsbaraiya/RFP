@@ -1,13 +1,17 @@
-// 
-// RFP Upload (Stylish Version)
-// 
+//
+// RFP Upload
+//
 
 import React, { useState } from "react";
 import api from "../api/axios";
 import { CloudUpload } from "lucide-react";
 import { Spinner } from "react-bootstrap";
 
-const RFPUpload: React.FC = () => {
+interface RFPUploadProps {
+  onSuccess?: () => Promise<void> | void;
+}
+
+const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState("");
@@ -37,6 +41,8 @@ const RFPUpload: React.FC = () => {
 
       setMessage(`✅ ${res.data.message || "RFP uploaded successfully!"}`);
       console.log("Upload Response:", res.data);
+
+      if (onSuccess) await onSuccess();
     } catch (error: any) {
       console.error("Upload error:", error);
 
@@ -58,7 +64,6 @@ const RFPUpload: React.FC = () => {
 
   return (
     <div className="text-center py-3">
-      {/* ☁️ Cloud Icon */}
       <div
         className="d-flex align-items-center justify-content-center mx-auto rounded-circle mb-3"
         style={{
@@ -74,8 +79,7 @@ const RFPUpload: React.FC = () => {
       <p className="text-muted mb-4 small">
         Supported formats: <strong>PDF, DOCX, TXT, PNG, JPG</strong>
       </p>
-
-      {/* File Input - Modern Dashed Box */}
+      
       <div
         className="p-4 mb-4 text-center mx-auto"
         style={{
@@ -100,14 +104,12 @@ const RFPUpload: React.FC = () => {
         />
       </div>
 
-      {/* Selected File */}
       {file && (
         <p className="text-success small mb-3">
           ✅ Selected: <strong>{file.name}</strong>
         </p>
       )}
 
-      {/* Upload Button */}
       <button
         className="btn btn-primary fw-semibold px-4 py-2"
         onClick={handleUpload}
@@ -139,7 +141,6 @@ const RFPUpload: React.FC = () => {
         )}
       </button>
 
-      {/* Message */}
       {message && (
         <p
           className={`mt-3 fw-semibold ${

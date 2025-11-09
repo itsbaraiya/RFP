@@ -213,7 +213,7 @@ const MyRFPs: React.FC = () => {
         </div>
       )}
       
-      <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)} centered size="md" backdrop="static">
+      <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)} centered backdrop="static">
         <Modal.Header closeButton>
           <Modal.Title>Create New RFP</Modal.Title>
         </Modal.Header>
