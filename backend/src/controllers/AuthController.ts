@@ -3,6 +3,8 @@
 //
 
 import { Request, Response } from "express";
+import { PrismaClient } from '../generated/prisma';
+const prisma = new PrismaClient();
 import { AuthService } from "../services/AuthService";
 
 export class AuthController {

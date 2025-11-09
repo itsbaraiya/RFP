@@ -3,23 +3,20 @@
 //
 
 import { PrismaClient } from "../generated/prisma";
-import fs from "fs";
 import path from "path";
 import PDFParser from "pdf2json";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
 
-
 const prisma = new PrismaClient();
-const uploadDir = path.join(__dirname, "../../uploads/rfps");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export class RFPService {
   // ==============================
   // UPLOAD RFP
   // ==============================
-  static async upload(req: any, userId: string) {
+  static async upload(req: any, userId: number) {
     if (!req.file) throw new Error("No file uploaded");
 
     const filePath = `/uploads/rfps/${req.file.filename}`;
@@ -38,7 +35,7 @@ export class RFPService {
   // ==============================
   // GET ALL RFPs (for logged-in user)
   // ==============================
-  static async getAll(userId: string) {
+  static async getAll(userId: number) {
     return prisma.rFP.findMany({
       where: { userId },
       include: {
@@ -54,9 +51,9 @@ export class RFPService {
   // ==============================
   // ANALYZE RFP CONTENT
   // ==============================
-  static async analyze(rfpId: string) {
+  static async analyze(rfpId: number) {
     const rfp = await prisma.rFP.findUnique({
-      where: { id: Number(rfpId) },
+      where: { id: rfpId },
     });
 
     if (!rfp) throw new Error("RFP not found");
@@ -66,9 +63,11 @@ export class RFPService {
     const pdfText = await new Promise<string>((resolve, reject) => {
       const pdfParser = new PDFParser();
 
-      pdfParser.on("pdfParser_dataError", (errData) =>
-        reject(errData.parserError)
-      );
+      pdfParser.on("pdfParser_dataError", (errData) => {
+        const parserError = (errData as any)?.parserError || errData;
+        reject(parserError);
+      });
+
       pdfParser.on("pdfParser_dataReady", (pdfData) => {
         const text = pdfData.Pages.map((page: any) =>
           page.Texts.map((t: any) => decodeURIComponent(t.R[0].T)).join(" ")
@@ -119,18 +118,18 @@ export class RFPService {
     }
 
     const { summary, key_requirements, sections, questions } = parsed;
-    
-    if (questions && questions.length > 0) {
+
+    if (Array.isArray(questions) && questions.length > 0) {
       await prisma.question.createMany({
         data: questions.map((q: string) => ({
           questionText: q,
-          rfpId: Number(rfpId),
+          rfpId,
         })),
       });
     }
 
     await prisma.rFP.update({
-      where: { id: Number(rfpId) },
+      where: { id: rfpId },
       data: {
         status: "ANALYZED",
         description: summary || "",
@@ -149,7 +148,6 @@ export class RFPService {
   // ==============================
   // COLLABORATOR METHODS
   // ==============================
-
   static async getCollaborators(rfpId: number) {
     const collaborators = await prisma.rFPCollaborator.findMany({
       where: { rfpId },
@@ -172,13 +170,13 @@ export class RFPService {
       role: col.role,
     }));
   }
-  
-  static async addCollaborator(rfpId: number, email: string, requesterId: number) {    
+
+  static async addCollaborator(rfpId: number, email: string, requesterId: number) {
     const collaboratorUser = await prisma.user.findUnique({ where: { email } });
-    if (!collaboratorUser) throw new Error("User not found");    
+    if (!collaboratorUser) throw new Error("User not found");
     if (collaboratorUser.id === requesterId)
       throw new Error("You cannot add yourself as a collaborator");
-    
+
     const existing = await prisma.rFPCollaborator.findUnique({
       where: {
         rfpId_userId: {

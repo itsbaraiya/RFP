@@ -14,7 +14,7 @@ export class UserService {
   }
 
   static async createUser(data: { email: string; password: string; name: string }): Promise<User> {
-    const hashedPassword = await bcrypt.hash(data.password, 10); // saltRounds = 10
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     return prisma.user.create({
       data: {
         email: data.email,
@@ -32,7 +32,7 @@ export class UserService {
   static async getUserById(id: number): Promise<User | null> {
     return prisma.user.findUnique({ where: { id } });
   }
-  
+
   static async updateUser(
     id: number,
     data: Partial<{
@@ -42,6 +42,7 @@ export class UserService {
       status: string;
       isBusy: boolean;
       role: Role;
+      designation?: string;
     }>
   ): Promise<{ user: User; token?: string } | null> {
     try {
