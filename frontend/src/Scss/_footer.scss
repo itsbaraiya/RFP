@@ -1,0 +1,151 @@
+.footer {
+  position: relative;
+  background: radial-gradient(circle at 20% 30%, #0a0a14, #050508 70%);
+  color: #d1d1d1;
+  padding: 5rem 2rem 2rem;
+  overflow: hidden;
+  text-align: center;
+
+  &__glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, #6a11cb20, #2575fc20, #00fff220);
+    animation: glowFlow 6s ease-in-out infinite alternate;
+    z-index: 1;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      width: 120%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #6a11cb, transparent);
+      animation: moveLine 6s linear infinite;
+      top: 15%;
+      left: -10%;
+      opacity: 0.2;
+    }
+
+    &::after {
+      top: auto;
+      bottom: 20%;
+      animation-delay: 3s;
+    }
+  }
+
+  &__content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      justify-content: space-between;
+      text-align: left;
+    }
+  }
+
+  &__brand {
+    max-width: 320px;
+  }
+
+  &__desc {
+    font-size: 0.95rem;
+    color: #9a9a9a;
+    margin-top: 0.5rem;
+    line-height: 1.5;
+  }
+
+  &__links {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+
+    a {
+      color: #c5c5c5;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        width: 0%;
+        height: 2px;
+        background: linear-gradient(90deg, #6a11cb, #00fff2);
+        transition: width 0.3s ease;
+      }
+
+      &:hover {
+        color: #fff;
+        &::after {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  &__socials {
+    display: flex;
+    gap: 1.2rem;
+    font-size: 1.3rem;
+
+    a {
+      color: #bfbfbf;
+      transition: all 0.3s ease;
+      transform: translateY(0);
+
+      &:hover {
+        color: #6a11cb;
+        transform: translateY(-4px);
+        text-shadow: 0 0 10px #6a11cb;
+      }
+    }
+  }
+
+  &__bottom {
+    margin-top: 3rem;
+    border-top: 1px solid #1e1e1e;
+    padding-top: 1.5rem;
+    font-size: 0.9rem;
+    color: #7a7a7a;
+    position: relative;
+    z-index: 2;
+
+    span {
+      display: block;
+      margin-top: 0.3rem;
+      color: #6a11cb;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px #6a11cb;
+    }
+  }
+}
+
+/* === Animations === */
+@keyframes glowFlow {
+  0% {
+    background: linear-gradient(120deg, #6a11cb10, #2575fc20, #00fff210);
+  }
+  100% {
+    background: linear-gradient(120deg, #6a11cb30, #2575fc30, #00fff230);
+  }
+}
+
+@keyframes moveLine {
+  0% {
+    transform: translateX(-10%);
+  }
+  100% {
+    transform: translateX(10%);
+  }
+}

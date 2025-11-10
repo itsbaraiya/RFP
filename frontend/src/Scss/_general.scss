@@ -1,0 +1,13 @@
+.brand {
+    &__logo {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #fff;
+
+    span {
+      color: #6a11cb;
+      text-shadow: 0 0 15px #6a11cb;
+    }
+  }
+}

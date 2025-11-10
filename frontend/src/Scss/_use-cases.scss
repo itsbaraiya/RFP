@@ -1,0 +1,75 @@
+.usecases-section {
+  padding: 120px 0;
+  background: radial-gradient(circle at top, #0a0a20, #050510 80%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+
+  .title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    span {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  .subtitle {
+    color: #aaa;
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  .usecase-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 45px 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-10px);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 25px rgba(101, 75, 255, 0.25);
+      border-color: rgba(101, 75, 255, 0.6);
+    }
+
+    .icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 10px rgba(101, 75, 255, 0.6));
+    }
+
+    h5 {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    p {
+      color: #bcbcbc;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    &:before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: radial-gradient(circle, rgba(101, 75, 255, 0.25), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    &:hover:before {
+      opacity: 1;
+    }
+  }
+}

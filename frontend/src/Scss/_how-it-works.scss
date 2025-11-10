@@ -1,0 +1,93 @@
+.how-v2 {
+  padding: 120px 0;
+  background: radial-gradient(circle at 20% 30%, #0b0b20, #030310 70%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("https://www.transparenttextures.com/patterns/cubes.png");
+    opacity: 0.03;
+  }
+
+  .title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+
+    span {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  .subtitle {
+    color: #aaa;
+    max-width: 600px;
+    margin: 0 auto;
+    font-size: 1.1rem;
+  }
+
+  .step-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(101, 75, 255, 0.1);
+    border-radius: 20px;
+    padding: 50px 25px;
+    backdrop-filter: blur(10px);
+    text-align: center;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(101, 75, 255, 0.15);
+
+    &:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 0 30px rgba(101, 75, 255, 0.4);
+      border-color: rgba(101, 75, 255, 0.5);
+    }
+
+    .glow {
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(120deg, #6a11cb, #2575fc, #6a11cb);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      border-radius: 20px;
+      z-index: 0;
+      filter: blur(20px);
+    }
+
+    &:hover .glow {
+      opacity: 0.7;
+    }
+
+    .icon {
+      font-size: 2.8rem;
+      margin-bottom: 20px;
+      z-index: 1;
+      position: relative;
+      filter: drop-shadow(0 0 12px rgba(101, 75, 255, 0.6));
+    }
+
+    h5 {
+      font-weight: 600;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    p {
+      color: #bcbcbc;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+  }
+}

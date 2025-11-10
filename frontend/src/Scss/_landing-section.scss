@@ -1,0 +1,59 @@
+.landing-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a12, #111a3c 50%, #030617);
+  color: #fff;
+  padding: 100px 0;
+  position: relative;
+  overflow: hidden;
+
+  .landing-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+
+    span {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+  }
+
+  .landing-subtitle {
+    font-size: 1.25rem;
+    color: #b8b8b8;
+    margin-top: 20px;
+    max-width: 600px;
+  }
+
+  .landing-buttons {
+    margin-top: 1.5rem;
+
+    .btn-primary {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      border: none;
+      transition: 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 20px rgba(101, 75, 255, 0.5);
+      }
+    }
+
+    .btn-outline-light:hover {
+      background: #fff;
+      color: #000;
+    }
+  }
+
+  .glowing-img {    
+    filter: drop-shadow(0 0 20px rgba(101, 75, 255, 0.6));
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+}

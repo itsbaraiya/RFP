@@ -1,14 +1,15 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./context/AuthContext";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import EditProfile from "./pages/EditProfile";
-import type { ReactNode } from "react"; // ✅ use type import for TS 5+ with verbatimModuleSyntax
+import type { ReactNode } from "react";
 
-// Wrapper component to handle conditional header rendering
+// Wrapper component to handle conditional header/footer rendering
 interface AppLayoutProps {
   children: ReactNode;
 }
@@ -16,14 +17,15 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
 
-  // Pages where header should be hidden
-  const hideHeaderPaths = ["/login", "/register", "/dashboard"];
-  const showHeader = !hideHeaderPaths.includes(location.pathname);
+  // Pages where header/footer should be hidden
+  const hideHeaderFooterPaths = ["/login", "/register", "/dashboard"];
+  const showHeaderFooter = !hideHeaderFooterPaths.includes(location.pathname);
 
   return (
     <>
-      {showHeader && <Header />}
-      {children}
+      {showHeaderFooter && <Header />}
+      <main>{children}</main>
+      {showHeaderFooter && <Footer />}
     </>
   );
 };
