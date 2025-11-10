@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
+import type { Engine } from "tsparticles-engine"; // import the Engine type
 
 const AIInAction: React.FC = () => {
   const fullText = `
@@ -24,7 +25,8 @@ Finalizing structure and tone...
     }
   }, [index]);
 
-  const particlesInit = useCallback(async (engine) => {
+  // Type the engine parameter as Engine
+  const particlesInit = useCallback(async (engine: Engine) => {
     await loadFull(engine);
   }, []);
 
