@@ -52,10 +52,8 @@ const Register: React.FC = () => {
         ))}
       </div>
 
-      {/* Mini upside-down robot */}
       <div className="mini-robot">🤖</div>
 
-      {/* Left Form */}
       <div className="form-side">
         <div className="register-form">
           <h2>Sign Up - RFP AI</h2>
@@ -70,7 +68,6 @@ const Register: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Image */}
       <div className="image-side">
         <img src="/Images/register/signup.jpeg" alt="RFP AI Illustration" />
       </div>

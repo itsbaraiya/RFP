@@ -23,7 +23,7 @@ const Header: React.FC = () => {
       <div className="container d-flex align-items-center justify-content-between">
         {/* Logo */}
         <div className="header-logo">
-          <Link to="/" className="logo-link">
+          <Link to="/" className="logo-link brand__logo">
             <div className="logo">
               RFP<span>AI</span>
             </div>

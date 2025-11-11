@@ -13,8 +13,7 @@
     animation: glowFlow 6s ease-in-out infinite alternate;
     z-index: 1;
 
-    &::before,
-    &::after {
+    &::before {
       content: "";
       position: absolute;
       width: 120%;
@@ -24,12 +23,6 @@
       top: 15%;
       left: -10%;
       opacity: 0.2;
-    }
-
-    &::after {
-      top: auto;
-      bottom: 20%;
-      animation-delay: 3s;
     }
   }
 
@@ -113,7 +106,6 @@
 
   &__bottom {
     margin-top: 3rem;
-    border-top: 1px solid #1e1e1e;
     padding-top: 1.5rem;
     font-size: 0.9rem;
     color: #7a7a7a;

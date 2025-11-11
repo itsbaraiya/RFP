@@ -3,31 +3,26 @@ import { FaLinkedin, FaGithub, FaTwitter, FaEnvelope } from "react-icons/fa";
 const Footer = () => {
   return (
     <footer className="footer">
-        <div className="container">
-      {/* glowing lines background */}
+      <div className="container">
       <div className="footer__glow"></div>
-
       <div className="footer__content">
-        {/* Left */}
         <div className="footer__brand">
-          <h2 className="footer__logo brand__logo">
-            RFP<span>AI</span>
-          </h2>
+          <a href="#" className="footer__logo brand__logo">
+            <div className="logo">
+              RFP<span>AI</span>
+            </div>
+          </a>
           <p className="footer__desc">
             Revolutionizing proposal creation with AI-powered precision and
             human-like understanding.
           </p>
         </div>
-
-        {/* Center */}
         <ul className="footer__links">
           <li><a href="#home">Home</a></li>
           <li><a href="#features">Features</a></li>
           <li><a href="#pricing">Pricing</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
-
-        {/* Right */}
         <div className="footer__socials">
           <a href="https://linkedin.com" target="_blank" rel="noreferrer">
             <FaLinkedin />
