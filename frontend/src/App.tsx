@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import EditProfile from "./pages/EditProfile";
 import type { ReactNode } from "react";
+import { ProtectedRoute, AuthRedirect } from "./components/routes/ProtectedRoute";
 
 // Wrapper component to handle conditional header/footer rendering
 interface AppLayoutProps {
@@ -16,8 +17,6 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
-
-  // Pages where header/footer should be hidden
   const hideHeaderFooterPaths = ["/login", "/register", "/dashboard"];
   const showHeaderFooter = !hideHeaderFooterPaths.includes(location.pathname);
 
@@ -37,10 +36,25 @@ function App() {
         <AppLayout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/edit-profile" element={<EditProfile />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<ProtectedRoute> <Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/edit-profile" element={
+                <ProtectedRoute>
+                  <EditProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/login" element={
+                <AuthRedirect>
+                  <Login />
+                </AuthRedirect>
+              }
+            />
+            <Route path="/register" element={
+                <AuthRedirect>
+                  <Register />
+                </AuthRedirect>
+              }
+            />
           </Routes>
         </AppLayout>
       </BrowserRouter>

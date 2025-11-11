@@ -1,45 +1,55 @@
-// 
-// Header
-// 
-
+// Header.tsx
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useEffect, useState } from "react";
 
 const Header: React.FC = () => {
   const { isLoggedIn, logout, initialized } = useAuth();
   const location = useLocation();
-  
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   if (!initialized) return null;
-  
+
   const isDashboard = location.pathname.startsWith("/dashboard");
 
   return (
-    <header className="header bg-dark text-white py-3">
-      <div className="container d-flex align-items-center justify-content-between">        
-        <div className="header-logo brand__logo">
-          <Link to="/" className="text-white text-decoration-none">
-            <div className="m-0 logo">RFP<span>AI</span></div>
+    <header className={`rfp-header ${scrolled ? "scrolled" : ""}`}>
+      <div className="container d-flex align-items-center justify-content-between">
+        {/* Logo */}
+        <div className="header-logo">
+          <Link to="/" className="logo-link">
+            <div className="logo">
+              RFP<span>AI</span>
+            </div>
           </Link>
         </div>
 
-        <nav className="header-nav d-none d-md-flex gap-3">
-          <Link to="/" className="text-white text-decoration-none">Home</Link>
-          <Link to="/features" className="text-white text-decoration-none">Features</Link>
-          <Link to="/pricing" className="text-white text-decoration-none">Pricing</Link>
-          <Link to="/about" className="text-white text-decoration-none">About</Link>
+        {/* Navigation */}
+        <nav className="nav-links d-none d-md-flex">
+          <Link to="/">Home</Link>
+          <Link to="/features">Features</Link>
+          <Link to="/pricing">Pricing</Link>
+          <Link to="/about">About</Link>
         </nav>
-        
-        <div className="header-auth d-flex gap-2 align-items-center">
+
+        {/* Auth buttons */}
+        <div className="auth-buttons d-flex align-items-center gap-2">
           {!isLoggedIn ? (
             <>
-              <Link to="/login" className="btn btn-outline-light">Login</Link>
-              <Link to="/register" className="btn btn-primary">Sign Up</Link>
+              <Link to="/login" className="btn-outline">Login</Link>
+              <Link to="/register" className="btn-primary">Sign Up</Link>
             </>
           ) : (
             !isDashboard && (
               <>
-                <Link to="/dashboard" className="profile-btn btn btn-primary">Get Started</Link>
-                <button className="btn btn-outline-light" onClick={logout}> Logout </button>
+                <Link to="/dashboard" className="btn-primary">Get Started</Link>
+                <button className="btn-outline" onClick={logout}>Logout</button>
               </>
             )
           )}
