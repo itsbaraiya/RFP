@@ -1,17 +1,15 @@
-//
-// RFP Upload
-//
-
 import React, { useState } from "react";
 import api from "../api/axios";
 import { CloudUpload } from "lucide-react";
 import { Spinner } from "react-bootstrap";
 
 interface RFPUploadProps {
-  onSuccess?: () => Promise<void> | void;
+  onSuccess?: (filePath: string) => Promise<void> | void;
+  hideTitle?: boolean;
+  compact?: boolean;
 }
 
-const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess }) => {
+const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState("");
@@ -39,10 +37,11 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      const uploadedFilePath = res.data?.filePath || "";
       setMessage(`✅ ${res.data.message || "RFP uploaded successfully!"}`);
       console.log("Upload Response:", res.data);
 
-      if (onSuccess) await onSuccess();
+      if (onSuccess) await onSuccess(uploadedFilePath);
     } catch (error: any) {
       console.error("Upload error:", error);
 
@@ -63,23 +62,16 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="text-center py-3">
-      <div
-        className="d-flex align-items-center justify-content-center mx-auto rounded-circle mb-3"
-        style={{
-          width: "80px",
-          height: "80px",
-          background: "rgba(37,99,235,0.1)",
-        }}
-      >
-        <CloudUpload size={40} color="#2563eb" />
-      </div>
+    <div className={`text-center ${compact ? "py-2" : "py-4"}`}>
+      {!hideTitle && (
+        <>
+          <h5 className="fw-semibold mb-2">Upload Your RFP Document</h5>
+          <p className="text-muted mb-4 small">
+            Supported formats: <strong>PDF, DOCX, TXT, PNG, JPG</strong>
+          </p>
+        </>
+      )}
 
-      <h5 className="fw-semibold mb-2">Upload Your RFP Document</h5>
-      <p className="text-muted mb-4 small">
-        Supported formats: <strong>PDF, DOCX, TXT, PNG, JPG</strong>
-      </p>
-      
       <div
         className="p-4 mb-4 text-center mx-auto"
         style={{

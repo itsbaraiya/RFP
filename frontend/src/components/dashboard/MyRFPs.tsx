@@ -22,7 +22,8 @@ import {
   Trash2,
 } from "lucide-react";
 import api from "../../api/axios";
-import RFPUpload from "../RFPUpload";
+import CreateRFPFlow from "../rfp/CreateRFPFlow";
+
 
 const MyRFPs: React.FC = () => {
   const [rfps, setRfps] = useState<any[]>([]);
@@ -218,13 +219,14 @@ const MyRFPs: React.FC = () => {
           <Modal.Title>Create New RFP</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <RFPUpload
-            onSuccess={async () => {
-              setShowUploadModal(false);
-              await fetchRFPs();
-            }}
-          />
-        </Modal.Body>
+        <CreateRFPFlow
+          onSuccess={async () => {
+            setShowUploadModal(false);
+            await fetchRFPs();
+          }}
+        />
+      </Modal.Body>
+
       </Modal>
       
       <Modal show={showCollaboratorModal} onHide={() => setShowCollaboratorModal(false)} centered>
