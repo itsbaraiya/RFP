@@ -31,7 +31,7 @@ const Home = () => {
                                     ? user.avatar.startsWith("http")
                                         ? `${user.avatar}?v=${user.updatedAt || Date.now()}`
                                         : `${BASE_URL}${user.avatar}?v=${user.updatedAt || Date.now()}`
-                                    : "https://via.placeholder.com/100"
+                                    : `${BASE_URL}/uploads/images/user/userplaceholder.avif`
                                 }
                                 alt={user.name}
                                 />

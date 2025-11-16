@@ -38,11 +38,22 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
     setProgress(progress - 33);
   };
 
-  const handleFileSelect = (rfp: { id: number; filePath: string }) => {
-    setFileData(rfp);
-    setStep(3);
-    setProgress(99);
-  };
+const handleFileSelect = (rfp) => {
+  setTitle(rfp.title || "");
+  setDescription(rfp.description || "");
+  setCategory(rfp.category || "");
+
+  setFileData({
+    id: rfp.id,
+    filePath: rfp.filePath,
+  });
+
+  setType("upload");
+  setStep(3);
+  setProgress(99);
+};
+
+
 
   const handleSubmit = async () => {
     if (!type) return setError("Please select an option.");
@@ -57,9 +68,19 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
       if (!token) throw new Error("Authentication required.");
 
       if (type === "upload" && fileData) {
-        await api.post(`/rfps/${fileData.id}/analyze`, {}, {
+        await api.post(
+        `/rfps/${fileData.id}/analyze`,
+        {
+          title,
+          description,
+          category,
+          filePath: fileData.filePath,
+        },
+        {
           headers: { Authorization: `Bearer ${token}` },
-        });
+        }
+      );
+
 
         setMessage("✅ RFP uploaded and analyzed successfully!");
       } else if (type === "ai") {

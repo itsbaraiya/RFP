@@ -4,12 +4,16 @@ import { CloudUpload } from "lucide-react";
 import { Spinner } from "react-bootstrap";
 
 interface RFPUploadProps {
-  onSuccess?: (rfp: { id: number; filePath: string }) => Promise<void> | void;
+  onSuccess?: (rfp: any) => Promise<void> | void;   // must return FULL RFP
   hideTitle?: boolean;
   compact?: boolean;
 }
 
-const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) => {
+const RFPUpload: React.FC<RFPUploadProps> = ({
+  onSuccess,
+  hideTitle,
+  compact,
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState("");
@@ -27,7 +31,9 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
     }
 
     const formData = new FormData();
-    formData.append("rfp", file);
+
+    // ⭐ FIX 1 — backend expects "file", NOT "rfp"
+    formData.append("file", file);
 
     try {
       setIsUploading(true);
@@ -37,19 +43,26 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const uploaded = res.data?.rfp;
-      if (!uploaded) {
+      // ⭐ FIX 2 — ensure backend returns FULL RFP object
+      const uploadedRFP = res.data?.rfp;
+      if (!uploadedRFP) {
         setMessage("❌ Backend did not return RFP data.");
         return;
       }
 
       setMessage(`✅ ${res.data.message || "RFP uploaded successfully!"}`);
-      if (onSuccess) await onSuccess(uploaded);
+
+      // ⭐ FIX 3 — properly pass the FULL RFP to parent
+      if (onSuccess) await onSuccess(uploadedRFP);
+
     } catch (error: any) {
       console.error("Upload error:", error);
+
       if (error.response) {
         const backendError =
-          error.response.data?.error || error.response.data?.message || "Upload failed from backend.";
+          error.response.data?.error ||
+          error.response.data?.message ||
+          "Upload failed from backend.";
         setMessage(`❌ ${backendError}`);
       } else {
         setMessage(`❌ ${error.message}`);
@@ -133,7 +146,9 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
 
       {message && (
         <p
-          className={`mt-3 fw-semibold ${message.startsWith("✅") ? "text-success" : "text-danger"}`}
+          className={`mt-3 fw-semibold ${
+            message.startsWith("✅") ? "text-success" : "text-danger"
+          }`}
         >
           {message}
         </p>

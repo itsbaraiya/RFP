@@ -1,13 +1,10 @@
-//
-// RFP SERVICE — FULLY FIXED AND CLEANED
-//
-
 import { PrismaClient } from "@prisma/client";
 import PDFParser from "pdf2json";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import fs from "fs/promises";
 import path from "path";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 dotenv.config();
 
@@ -18,9 +15,7 @@ const sanitizeFileName = (title: string) =>
   title.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
 
 export class RFPService {
-  // ===============================
-  // 📤 UPLOAD RFP
-  // ===============================
+
   static async upload(req: any, userId: number) {
     if (!req.file) throw new Error("No file uploaded");
 
@@ -29,54 +24,32 @@ export class RFPService {
 
     const fileName = `${sanitizeFileName(req.file.originalname)}-${Date.now()}${path.extname(req.file.originalname)}`;
     const filePath = path.join(uploadsFolder, fileName);
-
     await fs.rename(req.file.path, filePath);
 
     const relativePath = path.relative(path.join(__dirname, "..", ".."), filePath).replace(/\\/g, "/");
 
     const rfp = await prisma.rFP.create({
-      data: {
-        title: req.file.originalname,
-        filePath: relativePath,
-        userId: Number(userId),
-        status: "PENDING",
-      },
+      data: { title: req.file.originalname, filePath: relativePath, userId, status: "PENDING" }
     });
 
-    return {
-      id: rfp.id,
-      title: rfp.title,
-      filePath: rfp.filePath,
-      status: rfp.status,
-    };
+    return { id: rfp.id, title: rfp.title, filePath: rfp.filePath, status: rfp.status };
   }
 
-  // ===============================
-  // ❌ DELETE RFP
-  // ===============================
   static async deleteRFP(rfpId: number, userId: number) {
     const rfp = await prisma.rFP.findUnique({ where: { id: rfpId } });
     if (!rfp) throw new Error("RFP not found");
     if (rfp.userId !== userId) throw new Error("Unauthorized to delete this RFP");
 
-    // Delete collaborators & questions
     await prisma.rFPCollaborator.deleteMany({ where: { rfpId } });
     await prisma.question.deleteMany({ where: { rfpId } });
 
-    // Delete physical file
     const filePath = path.join(__dirname, "..", "..", rfp.filePath);
-    try {
-      await fs.unlink(filePath);
-    } catch {}
+    try { await fs.unlink(filePath); } catch {}
 
     await prisma.rFP.delete({ where: { id: rfpId } });
-
     return { message: "RFP deleted successfully" };
   }
 
-  // ===============================
-  // 📄 GET ALL RFPs
-  // ===============================
   static async getAll(userId: number) {
     const rfps = await prisma.rFP.findMany({
       where: { userId },
@@ -98,208 +71,217 @@ export class RFPService {
     }));
   }
 
-  // ===============================
-  // 🧠 ANALYZE RFP
-  // ===============================
-//   static async analyze(rfpId: number) {
-//     const rfp = await prisma.rFP.findUnique({ where: { id: rfpId } });
-//     if (!rfp) throw new Error("RFP not found");
+static async analyze(rfpId: number) {
+  // ---------------- Validate RFP ----------------
+  const rfp = await prisma.rFP.findUnique({ where: { id: rfpId } });
+  if (!rfp) throw new Error("RFP not found");
 
-//     const fullPath = path.join(__dirname, "..", "..", rfp.filePath);
+  const fullPath = path.join(__dirname, "..", "..", rfp.filePath);
 
-//     // Extract PDF text
-//     const pdfText: string = await new Promise((resolve, reject) => {
-//       const pdfParser = new PDFParser();
+  // ---------------- Extract PDF Text ----------------
+  const pdfText: string = await new Promise((resolve, reject) => {
+    const pdfParser = new PDFParser();
 
-//       pdfParser.on("pdfParser_dataError", (errData) =>
-//         reject((errData as any)?.parserError || errData)
-//       );
+    pdfParser.on("pdfParser_dataError", (errData) =>
+      reject((errData as any)?.parserError || errData)
+    );
 
-//       pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
-//         try {
-//           const text = pdfData.Pages.map((page: any) =>
-//             page.Texts.map((t: any) => decodeURIComponent(t.R[0].T)).join(" ")
-//           ).join("\n");
-//           resolve(text);
-//         } catch (err) {
-//           reject(err);
-//         }
-//       });
+    pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+      try {
+        const text = pdfData.Pages.map((page: any) =>
+          page.Texts.map((t: any) => decodeURIComponent(t.R[0].T)).join(" ")
+        ).join("\n");
 
-//       pdfParser.loadPDF(fullPath);
-//     });
-
-//     // AI analysis
-//     const prompt = `
-// Extract the following from this RFP:
-
-// 1. Summary
-// 2. Key Requirements (as bullet points)
-// 3. Sections (as bullet points)
-// 4. Important Questions (as bullet points)
-
-// Return **ONLY JSON** formatted like:
-
-// {
-//   "summary": "...",
-//   "key_requirements": ["..."],
-//   "sections": ["..."],
-//   "questions": ["..."]
-// }
-
-// RFP CONTENT:
-// ${pdfText.substring(0, 12000)}
-//     `;
-
-//     const aiResponse = await openai.chat.completions.create({
-//       model: "gpt-4o-mini",
-//       messages: [{ role: "user", content: prompt }],
-//       temperature: 0,
-//     });
-
-//     const content = aiResponse.choices[0].message?.content || "{}";
-
-//     let parsed;
-//     try {
-//       parsed = JSON.parse(content);
-//     } catch {
-//       parsed = { summary: content, key_requirements: [], sections: [], questions: [] };
-//     }
-
-//     const { summary = "", key_requirements = [], sections = [], questions = [] } = parsed;
-
-//     // Save questions with AI answer
-//     if (Array.isArray(questions) && questions.length > 0) {
-//       await prisma.question.createMany({
-//         data: questions.map((q: string) => ({ questionText: q, aiSuggestedAnswer: q, rfpId })),
-//       });
-//     }
-
-//     // Update RFP status
-//     await prisma.rFP.update({
-//       where: { id: rfpId },
-//       data: { status: "ANALYZED", description: summary },
-//     });
-
-//     return { message: "RFP analyzed successfully", summary, key_requirements, sections, questions };
-//   }
-
-  static async analyze(rfpId: number) {
-    const rfp = await prisma.rFP.findUnique({ where: { id: rfpId } });
-    if (!rfp) throw new Error("RFP not found");
-
-    const fullPath = path.join(__dirname, "..", "..", rfp.filePath);
-
-    // Extract PDF text
-    const pdfText: string = await new Promise((resolve, reject) => {
-      const pdfParser = new PDFParser();
-
-      pdfParser.on("pdfParser_dataError", (errData) =>
-        reject((errData as any)?.parserError || errData)
-      );
-
-      pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
-        try {
-          const text = pdfData.Pages.map((page: any) =>
-            page.Texts.map((t: any) => decodeURIComponent(t.R[0].T)).join(" ")
-          ).join("\n");
-          resolve(text);
-        } catch (err) {
-          reject(err);
-        }
-      });
-
-      pdfParser.loadPDF(fullPath);
+        resolve(text);
+      } catch (err) {
+        reject(err);
+      }
     });
 
-    // AI analysis
-    const prompt = `
-Extract the following from this RFP:
+    pdfParser.loadPDF(fullPath);
+  });
 
-1. Summary
-2. Key Requirements (as bullet points)
-3. Sections (as bullet points)
-4. Important Questions (as bullet points)
+  // ---------------- Chunk Large PDF ----------------
+  const MAX_CHUNK = 12000;
+  const chunks: string[] = [];
 
-Return **ONLY JSON** formatted like:
+  for (let i = 0; i < pdfText.length; i += MAX_CHUNK) {
+    chunks.push(pdfText.slice(i, i + MAX_CHUNK));
+  }
+
+  // ---------------- Instruction for AI ----------------
+  const instruct = (chunk: string) => `
+You are an AI assistant that analyzes RFP documents.
+
+Return ONLY valid JSON:
 
 {
-  "summary": "...",
+  "summary": "1 short paragraph summary",
   "key_requirements": ["..."],
   "sections": ["..."],
-  "questions": ["..."]
+  "questions": [
+      {
+        "question": "Write a clear clarifying question",
+        "suggestedAnswer": "Short 1-2 line AI answer",
+        "section": "Optional section name"
+      }
+  ],
+  "risks": ["..."],
+  "missing_items": ["..."]
 }
 
-RFP CONTENT:
-${pdfText.substring(0, 12000)}
-    `;
+RFP TEXT:
+${chunk}
+`;
 
+  // ---------------- Prepare Aggregated Structure ----------------
+  let aggregated = {
+    summary: "",
+    key_requirements: [] as string[],
+    sections: [] as string[],
+    questions: [] as {
+      question: string;
+      suggestedAnswer: string;
+      section?: string;
+    }[],
+    risks: [] as string[],
+    missing_items: [] as string[],
+  };
+
+  // ---------------- Process Chunk by Chunk ----------------
+  for (const chunk of chunks) {
     const aiResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: instruct(chunk) }],
       temperature: 0,
     });
 
-    const content = aiResponse.choices[0].message?.content || "{}";
+    let content = aiResponse.choices?.[0]?.message?.content || "{}";
 
+    // ---------------- Robust JSON Parse ----------------
     let parsed;
     try {
       parsed = JSON.parse(content);
     } catch {
-      parsed = { summary: content, key_requirements: [], sections: [], questions: [] };
+      parsed = {
+        summary: content,
+        key_requirements: [],
+        sections: [],
+        questions: [],
+        risks: [],
+        missing_items: [],
+      };
     }
 
-    const { summary = "", key_requirements = [], sections = [], questions = [] } = parsed;
+    // ---------------- Merging ----------------
+    aggregated.summary +=
+      (aggregated.summary ? "\n\n" : "") + (parsed.summary || "");
 
-    // Save questions with AI answer
-    if (Array.isArray(questions) && questions.length > 0) {
-      await prisma.question.createMany({
-        data: questions.map((q: string) => ({
-          questionText: q,
-          aiSuggestedAnswer: q,
-          rfpId,
-        })),
-      });
-    }
-
-    // Update RFP status
-    await prisma.rFP.update({
-      where: { id: rfpId },
-      data: { status: "ANALYZED", description: summary },
-    });
-
-    return { message: "RFP analyzed successfully", summary, key_requirements, sections, questions };
+    aggregated.key_requirements.push(...(parsed.key_requirements || []));
+    aggregated.sections.push(...(parsed.sections || []));
+    aggregated.questions.push(...(parsed.questions || []));
+    aggregated.risks.push(...(parsed.risks || []));
+    aggregated.missing_items.push(...(parsed.missing_items || []));
   }
 
-  // Fetch questions for frontend
-  static async getQuestions(rfpId: number) {
-    const questions = await prisma.question.findMany({
-      where: { rfpId },
-      select: {
-        id: true,
-        questionText: true,
-        aiSuggestedAnswer: true,
-        userEditedAnswer: true,
+  // ---------------- Remove Duplicate Text ----------------
+  const unique = (arr: string[]) =>
+    Array.from(new Set(arr.map((x) => x.trim()).filter(Boolean)));
+
+  const finalQuestions = aggregated.questions
+    .map((q) => ({
+      question: (q.question || "").trim(),
+      suggestedAnswer: (q.suggestedAnswer || "").trim(),
+      section: q.section?.trim() || null,
+    }))
+    .filter((q) => q.question.length > 0);
+
+  // ---------------- Save Questions to DB ----------------
+  await prisma.question.deleteMany({ where: { rfpId } });
+
+  if (finalQuestions.length > 0) {
+    await prisma.question.createMany({
+      data: finalQuestions.map((q) => ({
+        rfpId,
+        questionText: q.question,
+        aiSuggestedAnswer: q.suggestedAnswer,
+        section: q.section,
+      })),
+    });
+  }
+
+  // ---------------- Update RFP Summary & Status ----------------
+  const summaryToStore = aggregated.summary.trim().slice(0, 5000);
+
+  await prisma.rFP.update({
+    where: { id: rfpId },
+    data: { status: "ANALYZED", description: summaryToStore },
+  });
+
+  // ---------------- Final Response ----------------
+  return {
+    message: "RFP analyzed successfully",
+    summary: aggregated.summary.trim(),
+    key_requirements: unique(aggregated.key_requirements),
+    sections: unique(aggregated.sections),
+    questions: finalQuestions,
+    risks: unique(aggregated.risks),
+    missing_items: unique(aggregated.missing_items),
+  };
+}
+
+
+static async getQuestions(rfpId: number) {
+  const rfp = await prisma.rFP.findUnique({
+    where: { id: rfpId },
+    include: {
+      questions: {
+        select: {
+          id: true,
+          questionText: true,
+          aiSuggestedAnswer: true,
+          userEditedAnswer: true,
+          section: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: "asc" },
       },
-    });
-    return questions;
-  }
+    },
+  });
 
-  // ===============================
-  // 🤖 GENERATE AI RFP
-  // ===============================
+  if (!rfp) throw new Error("RFP not found");
+
+  // Map DB Question rows to API-friendly shape
+  const questions = (rfp.questions || []).map((q) => ({
+    id: q.id,
+    questionText: q.questionText,
+    aiSuggestedAnswer: q.aiSuggestedAnswer || "",
+    userEditedAnswer: q.userEditedAnswer || "",
+    section: q.section || null,
+    createdAt: q.createdAt,
+    updatedAt: q.updatedAt,
+  }));
+
+  // Return standardized object: { summary, questions }
+  return {
+    summary: rfp.description || "",
+    questions,
+  };
+}
+
+
   static async generateAI(title: string, description: string, category: string, prompt: string, userId: number) {
     if (!prompt) throw new Error("Prompt is required");
 
     const aiPrompt = `
 Generate a professional RFP document based on:
-
 Title: ${title}
 Category: ${category}
 Description: ${description}
 Requirements / Details: ${prompt}
 
-Return ONLY plain text of the RFP.
+Return ONLY plain text.
     `;
 
     const aiResponse = await openai.chat.completions.create({
@@ -314,9 +296,26 @@ Return ONLY plain text of the RFP.
     const uploadsFolder = path.join(__dirname, "..", "..", "uploads", "rfps", "generated");
     await fs.mkdir(uploadsFolder, { recursive: true });
 
-    const fileName = `${sanitizeFileName(title)}-${Date.now()}.txt`;
+    const fileName = `${sanitizeFileName(title)}-${Date.now()}.pdf`;
     const filePath = path.join(uploadsFolder, fileName);
-    await fs.writeFile(filePath, rfpText);
+
+    const pdfDoc = await PDFDocument.create();
+    let page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontSize = 12;
+    const lines = rfpText.split("\n");
+
+    let y = height - 50;
+
+    for (const line of lines) {
+      if (y < 50) { page = pdfDoc.addPage(); y = height - 50; }
+      page.drawText(line, { x: 50, y, size: fontSize, font, color: rgb(0, 0, 0) });
+      y -= fontSize + 5;
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    await fs.writeFile(filePath, pdfBytes);
 
     const relativePath = path.relative(path.join(__dirname, "..", ".."), filePath).replace(/\\/g, "/");
 
@@ -327,9 +326,6 @@ Return ONLY plain text of the RFP.
     return { id: rfp.id, title: rfp.title, filePath: rfp.filePath, status: rfp.status };
   }
 
-  // ===============================
-  // 👥 GET COLLABORATORS
-  // ===============================
   static async getCollaborators(rfpId: number) {
     const collaborators = await prisma.rFPCollaborator.findMany({
       where: { rfpId },
@@ -337,16 +333,10 @@ Return ONLY plain text of the RFP.
     });
 
     return collaborators.map((c) => ({
-      id: c.user.id,
-      name: c.user.name,
-      email: c.user.email,
-      role: c.role,
+      id: c.user.id, name: c.user.name, email: c.user.email, role: c.role,
     }));
   }
 
-  // ===============================
-  // ➕ ADD COLLABORATOR
-  // ===============================
   static async addCollaborator(rfpId: number, email: string, requesterId: number) {
     const collaboratorUser = await prisma.user.findUnique({ where: { email } });
     if (!collaboratorUser) throw new Error("User not found");
@@ -362,15 +352,9 @@ Return ONLY plain text of the RFP.
       include: { user: true },
     });
 
-    return {
-      message: "Collaborator added",
-      collaborator: { id: created.user.id, name: created.user.name, email: created.user.email, role: created.role },
-    };
+    return { message: "Collaborator added", collaborator: { id: created.user.id, name: created.user.name, email: created.user.email, role: created.role } };
   }
 
-  // ===============================
-  // ❌ REMOVE COLLABORATOR
-  // ===============================
   static async removeCollaborator(rfpId: number, userId: number) {
     await prisma.rFPCollaborator.delete({ where: { rfpId_userId: { rfpId, userId } } });
     return { message: "Collaborator removed" };

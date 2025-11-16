@@ -104,7 +104,7 @@ const Dashboard = () => {
     <div className="dashboard">      
       <aside className="sidebar">
         <div className="sidebar__logo" ref={profileRef} onClick={() => navigate("/")}>
-          <img src={`${BASE_URL}/uploads/images/logo.svg`} alt="Profile"/>
+          <img src={`${BASE_URL}/uploads/images/logo.jpeg`} alt="Profile"/>
         </div>
 
         <nav className="sidebar__nav">

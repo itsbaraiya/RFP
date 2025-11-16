@@ -1,7 +1,4 @@
-//
-// My RFPs — Full Updated with Modals & Toasts
-//
-
+// src/components/rfp/MyRFPs.tsx
 import { useEffect, useState } from "react";
 import {
   Button,
@@ -33,7 +30,7 @@ const MyRFPs: React.FC = () => {
 
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [analysisQuestions, setAnalysisQuestions] = useState<any[]>([]);
-
+  const [analysisSummary, setAnalysisSummary] = useState<string>("");
 
   const [selectedRFP, setSelectedRFP] = useState<any>(null);
   const [rfpToDelete, setRfpToDelete] = useState<any>(null);
@@ -59,20 +56,6 @@ const MyRFPs: React.FC = () => {
       setUserId(parsedUser.id);
     }
   }, []);
-
-const handleViewAnalysis = async (rfp: any) => {
-  try {
-    const res = await api.get(`/rfps/${rfp.id}/questions`);
-    setAnalysisQuestions(res.data || []); // <-- just use res.data directly
-    setSelectedRFP(rfp);
-    setShowAnalysisModal(true);
-  } catch (err) {
-    console.error(err);
-    setToast({ message: "Failed to load analysis", variant: "danger" });
-  }
-};
-
-
 
   const fetchRFPs = async () => {
     setLoadingRfps(true);
@@ -178,6 +161,36 @@ const handleViewAnalysis = async (rfp: any) => {
     }
   };
 
+  // ---------------- Analysis (fixed) ----------------
+  const handleViewAnalysis = async (rfp: any) => {
+    setSelectedRFP(rfp); // show title immediately
+    setAnalysisQuestions([]);
+    setAnalysisSummary("");
+    try {
+      const res = await api.get(`/rfps/${rfp.id}/questions`);
+      // res.data = { summary: string, questions: Question[] }
+      setAnalysisSummary(res.data.summary || rfp.description || "");
+      // Map returned DB fields to consistent frontend keys
+      const questions = (res.data.questions || []).map((q: any) => ({
+        id: q.id,
+        questionText: q.questionText ?? q.question ?? q.text ?? "",
+        aiSuggestedAnswer: q.aiSuggestedAnswer ?? "",
+        userEditedAnswer: q.userEditedAnswer ?? "",
+        section: q.section ?? null,
+      }));
+      setAnalysisQuestions(questions);
+      setShowAnalysisModal(true);
+    } catch (err: any) {
+      console.error("Failed to load analysis:", err?.response?.data || err?.message);
+      setToast({ message: "Failed to load analysis", variant: "danger" });
+    }
+  };
+
+  // ---------------- View File helper ----------------
+  const handleViewFile = (rfp: any) => {
+    window.open(`${BASE_URL}/${rfp.filePath}`, "_blank");
+  };
+
   return (
     <div className="p-4">
       {/* Header */}
@@ -245,19 +258,11 @@ const handleViewAnalysis = async (rfp: any) => {
                 </div>
 
                 <div className="d-flex flex-wrap justify-content-between gap-2 mt-3">
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={() => window.open(`${BASE_URL}${rfp.filePath}`, "_blank")}
-                  >
+                  <Button variant="outline-primary" size="sm" onClick={() => handleViewFile(rfp)}>
                     View File
                   </Button>
 
-                  <Button
-                    variant="outline-dark"
-                    size="sm"
-                    onClick={() => handleCollaboratorClick(rfp)}
-                  >
+                  <Button variant="outline-dark" size="sm" onClick={() => handleCollaboratorClick(rfp)}>
                     <Users size={14} className="me-1" /> Collaborators
                   </Button>
 
@@ -266,7 +271,6 @@ const handleViewAnalysis = async (rfp: any) => {
                       <CheckCircle2 size={14} className="me-1" /> View Analysis
                     </Button>
                   )}
-
 
                   <Button
                     variant="outline-danger"
@@ -387,25 +391,60 @@ const handleViewAnalysis = async (rfp: any) => {
         </Modal.Footer>
       </Modal>
 
+      {/* Analysis Modal (fixed) */}
       <Modal show={showAnalysisModal} onHide={() => setShowAnalysisModal(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>Analysis — {selectedRFP?.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {analysisQuestions.length === 0 ? (
-            <p>No analysis available yet.</p>
-          ) : (
-            analysisQuestions.map((q, idx) => (
-              <div key={idx} className="mb-3">
-                <strong>Q:</strong> {q.questionText} <br />
-                <strong>AI Suggested:</strong> {q.aiSuggestedAnswer || "-"} <br />
-                <strong>User Answer:</strong> {q.userEditedAnswer || "-"}
+          {/* Summary */}
+          {(analysisSummary || selectedRFP?.description) ? (
+            <div className="mb-4">
+              <h6 className="mb-1">Summary</h6>
+              <div className="p-3 rounded" style={{ background: "#f7f9fc", border: "1px solid #e5e9f0" }}>
+                <p className="text-muted mb-0">{analysisSummary || selectedRFP?.description}</p>
               </div>
-            ))
+            </div>
+          ) : (
+            <p className="text-muted">No summary available.</p>
+          )}
+
+          {/* Questions */}
+          <h6 className="fw-semibold mb-2">AI-Generated Questions</h6>
+
+          {analysisQuestions.length === 0 ? (
+            <p className="text-muted">No questions found.</p>
+          ) : (
+            <ListGroup>
+              {analysisQuestions.map((q) => (
+                <ListGroup.Item key={q.id}>
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div className="fw-semibold">{q.questionText}</div>
+                      {q.section && <div className="small text-muted">Section: {q.section}</div>}
+                      {q.aiSuggestedAnswer && (
+                        <div className="mt-2">
+                          <strong>AI Suggested:</strong>
+                          <div className="small text-muted">{q.aiSuggestedAnswer}</div>
+                        </div>
+                      )}
+                      {q.userEditedAnswer && (
+                        <div className="mt-2">
+                          <strong>Your Answer:</strong>
+                          <div className="small text-muted">{q.userEditedAnswer}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
           )}
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAnalysisModal(false)}>Close</Button>
+        </Modal.Footer>
       </Modal>
-
 
       {/* Toast Notification */}
       {toast && (
