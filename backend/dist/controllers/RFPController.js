@@ -145,26 +145,37 @@ class RFPController {
                 return res.status(401).json({ error: "Unauthorized" });
             const { title, description, category, prompt } = req.body;
             const rfp = await RFPService_1.RFPService.generateAI(title, description, category, prompt, userId);
-            return res.status(201).json({ message: "AI RFP generated successfully", rfp });
+            // Auto analyze the newly created RFP so that questions are already available
+            try {
+                const analysis = await RFPService_1.RFPService.analyze(rfp.id);
+                return res.status(201).json({ message: "AI RFP generated and analyzed successfully", rfp, analysis });
+            }
+            catch (analysisErr) {
+                // If analysis fails, we still return the created RFP but inform analysis failed
+                console.error("Auto-analysis failed:", analysisErr);
+                return res.status(201).json({ message: "AI RFP generated but analysis failed", rfp, analysisError: analysisErr.message || "Analysis failed" });
+            }
         }
         catch (err) {
             console.error("Generate AI RFP Error:", err);
             return res.status(500).json({ error: err.message || "Failed to generate AI RFP" });
         }
     }
-    // In RFPController.ts
+    // ======================================================
+    // 🧠 Get Questions
+    // ======================================================
     static async getQuestions(req, res) {
         try {
             const rfpId = Number(req.params.id);
             if (!rfpId || isNaN(rfpId)) {
                 return res.status(400).json({ error: "Invalid RFP ID" });
             }
-            const questions = await RFPService_1.RFPService.getQuestions(rfpId);
-            return res.status(200).json(questions);
+            const payload = await RFPService_1.RFPService.getQuestions(rfpId);
+            return res.status(200).json(payload);
         }
         catch (err) {
             console.error("Get Questions Error:", err);
-            return res.status(500).json({ error: "Failed to load analysis" });
+            return res.status(500).json({ error: err.message || "Failed to load analysis" });
         }
     }
 }

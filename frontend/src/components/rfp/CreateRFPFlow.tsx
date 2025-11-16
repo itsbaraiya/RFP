@@ -38,20 +38,28 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
     setProgress(progress - 33);
   };
 
-const handleFileSelect = (rfp) => {
-  setTitle(rfp.title || "");
-  setDescription(rfp.description || "");
-  setCategory(rfp.category || "");
+  interface RFPData {
+    id: number;
+    title?: string;
+    description?: string;
+    category?: string;
+    filePath: string;
+  }
 
-  setFileData({
-    id: rfp.id,
-    filePath: rfp.filePath,
-  });
+  const handleFileSelect = (rfp: RFPData) => {
+    setTitle(rfp.title || "");
+    setDescription(rfp.description || "");
+    setCategory(rfp.category || "");
 
-  setType("upload");
-  setStep(3);
-  setProgress(99);
-};
+    setFileData({
+      id: rfp.id,
+      filePath: rfp.filePath,
+    });
+
+    setType("upload");
+    setStep(3);
+    setProgress(99);
+  };
 
 
 
@@ -69,17 +77,17 @@ const handleFileSelect = (rfp) => {
 
       if (type === "upload" && fileData) {
         await api.post(
-        `/rfps/${fileData.id}/analyze`,
-        {
-          title,
-          description,
-          category,
-          filePath: fileData.filePath,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+          `/rfps/${fileData.id}/analyze`,
+          {
+            title,
+            description,
+            category,
+            filePath: fileData.filePath,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
 
         setMessage("✅ RFP uploaded and analyzed successfully!");
