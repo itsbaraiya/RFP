@@ -4,7 +4,7 @@ import { CloudUpload } from "lucide-react";
 import { Spinner } from "react-bootstrap";
 
 interface RFPUploadProps {
-  onSuccess?: (filePath: string) => Promise<void> | void;
+  onSuccess?: (rfp: { id: number; filePath: string }) => Promise<void> | void;
   hideTitle?: boolean;
   compact?: boolean;
 }
@@ -27,21 +27,29 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("rfp", file); // ⚠️ REAL FIELD NAME
 
     try {
       setIsUploading(true);
       setMessage("");
 
-      const res = await api.post("/rfp/upload", formData, {
+      const res = await api.post("/rfps/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const uploadedFilePath = res.data?.filePath || "";
-      setMessage(`✅ ${res.data.message || "RFP uploaded successfully!"}`);
       console.log("Upload Response:", res.data);
 
-      if (onSuccess) await onSuccess(uploadedFilePath);
+      const uploaded = res.data?.rfp;
+      if (!uploaded) {
+        setMessage("❌ Backend did not return RFP data.");
+        return;
+      }
+
+      setMessage(`✅ ${res.data.message || "RFP uploaded successfully!"}`);
+
+      // send entire rfp object: { id, filePath }
+      if (onSuccess) await onSuccess(uploaded);
+
     } catch (error: any) {
       console.error("Upload error:", error);
 
@@ -51,8 +59,6 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
           error.response.data?.message ||
           "Upload failed from backend.";
         setMessage(`❌ ${backendError}`);
-      } else if (error.request) {
-        setMessage("❌ No response from server. Please check your connection.");
       } else {
         setMessage(`❌ ${error.message}`);
       }

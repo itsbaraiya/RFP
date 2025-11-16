@@ -1,116 +1,187 @@
-//
-// RFP Controller
-//
-
 import { Request, Response } from "express";
 import { RFPService } from "../services/RFPService";
 
 export class RFPController {
-  // ==============================
+
+  // ======================================================
   // 📤 Upload RFP
-  // ==============================
+  // ======================================================
   static async upload(req: Request, res: Response) {
     try {
       const userId = Number((req.user as any)?.id);
-      if (!userId) throw new Error("Unauthorized: User ID missing");
+      if (!userId || isNaN(userId)) {
+        return res.status(401).json({ error: "Unauthorized: Invalid user ID" });
+      }
 
-      const result = await RFPService.upload(req, userId);
-      res.status(201).json(result);
-    } catch (err: any) {
-      console.error("Upload Error:", err.message || err);
-      res.status(400).json({
-        error: err.message || "File upload failed",
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const rfp = await RFPService.upload(req, userId);
+
+      return res.status(201).json({
+        message: "RFP uploaded successfully",
+        rfp,
       });
+
+    } catch (err: any) {
+      console.error("Upload Error:", err);
+      return res.status(500).json({ error: err.message || "File upload failed" });
     }
   }
 
-  // ==============================
-  // 📜 Get All RFPs (for user)
-  // ==============================
-  static async getAll(req: Request, res: Response) {
+  // ======================================================
+  // ❌ Delete RFP
+  // ======================================================
+  static async deleteRFP(req: Request, res: Response) {
     try {
+      const rfpId = Number(req.params.id);
       const userId = Number((req.user as any)?.id);
-      if (!userId) throw new Error("Unauthorized: User ID missing");
 
-      const rfps = await RFPService.getAll(userId);
-      res.json(rfps);
+      if (!rfpId || isNaN(rfpId)) return res.status(400).json({ error: "Invalid RFP ID" });
+      if (!userId || isNaN(userId)) return res.status(401).json({ error: "Unauthorized" });
+
+      const result = await RFPService.deleteRFP(rfpId, userId);
+      return res.status(200).json(result);
+
     } catch (err: any) {
-      console.error("Get All RFPs Error:", err.message || err);
-      res.status(500).json({
-        error: err.message || "Failed to fetch RFPs",
-      });
+      console.error("Delete RFP Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to delete RFP" });
     }
   }
 
-  // ==============================
+  // ======================================================
   // 🧠 Analyze RFP
-  // ==============================
+  // ======================================================
   static async analyze(req: Request, res: Response) {
     try {
       const rfpId = Number(req.params.rfpId);
-      if (isNaN(rfpId)) throw new Error("Invalid RFP ID");
+      if (!rfpId || isNaN(rfpId)) {
+        return res.status(400).json({ error: "Invalid RFP ID" });
+      }
 
       const analysis = await RFPService.analyze(rfpId);
-      res.json(analysis);
+      return res.status(200).json(analysis);
+
     } catch (err: any) {
-      console.error("Analyze RFP Error:", err.message || err);
-      res.status(500).json({
-        error: err.message || "Failed to analyze RFP",
-      });
+      console.error("Analyze Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to analyze RFP" });
     }
   }
 
-  // ==============================
+  // ======================================================
+  // 📜 Get All RFPs for User
+  // ======================================================
+  static async getAll(req: Request, res: Response) {
+    try {
+      const userId = Number((req.user as any)?.id);
+      if (!userId || isNaN(userId)) {
+        return res.status(401).json({ error: "Unauthorized: Invalid user ID" });
+      }
+
+      const rfps = await RFPService.getAll(userId);
+      return res.status(200).json(rfps);
+
+    } catch (err: any) {
+      console.error("Get All RFPs Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to fetch RFPs" });
+    }
+  }
+
+  // ======================================================
   // 👥 Get Collaborators
-  // ==============================
+  // ======================================================
   static async getCollaborators(req: Request, res: Response) {
     try {
       const rfpId = Number(req.params.id);
-      if (isNaN(rfpId)) throw new Error("Invalid RFP ID");
+      if (!rfpId || isNaN(rfpId)) return res.status(400).json({ error: "Invalid RFP ID" });
 
       const collaborators = await RFPService.getCollaborators(rfpId);
-      res.json(collaborators);
+      return res.status(200).json(collaborators);
+
     } catch (err: any) {
-      console.error("Get Collaborators Error:", err.message || err);
-      res.status(500).json({ error: err.message || "Failed to fetch collaborators" });
+      console.error("Get Collaborators Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to fetch collaborators" });
     }
   }
 
-  // ==============================
+  // ======================================================
   // ➕ Add Collaborator
-  // ==============================
+  // ======================================================
   static async addCollaborator(req: Request, res: Response) {
     try {
       const rfpId = Number(req.params.id);
-      if (isNaN(rfpId)) throw new Error("Invalid RFP ID");
-
-      const { email } = req.body;
       const requesterId = Number((req.user as any)?.id);
-      if (!requesterId) throw new Error("Unauthorized: User ID missing");
+      const { email } = req.body;
+
+      if (!rfpId || isNaN(rfpId)) return res.status(400).json({ error: "Invalid RFP ID" });
+      if (!requesterId || isNaN(requesterId)) return res.status(401).json({ error: "Unauthorized: Invalid user ID" });
+      if (!email) return res.status(400).json({ error: "Email is required" });
 
       const result = await RFPService.addCollaborator(rfpId, email, requesterId);
-      res.status(201).json(result);
+      return res.status(201).json(result);
+
     } catch (err: any) {
-      console.error("Add Collaborator Error:", err.message || err);
-      res.status(400).json({ error: err.message || "Failed to add collaborator" });
+      console.error("Add Collaborator Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to add collaborator" });
     }
   }
 
-  // ==============================
-  // ❌ Remove Collaborator (Optional)
-  // ==============================
+  // ======================================================
+  // ❌ Remove Collaborator
+  // ======================================================
   static async removeCollaborator(req: Request, res: Response) {
     try {
       const rfpId = Number(req.params.id);
       const userId = Number(req.params.userId);
 
-      if (isNaN(rfpId) || isNaN(userId)) throw new Error("Invalid ID");
+      if (!rfpId || !userId || isNaN(rfpId) || isNaN(userId)) {
+        return res.status(400).json({ error: "Invalid IDs" });
+      }
 
       const result = await RFPService.removeCollaborator(rfpId, userId);
-      res.json(result);
+      return res.status(200).json(result);
+
     } catch (err: any) {
-      console.error("Remove Collaborator Error:", err.message || err);
-      res.status(400).json({ error: err.message || "Failed to remove collaborator" });
+      console.error("Remove Collaborator Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to remove collaborator" });
     }
   }
+
+  // ======================================================
+  // 🧠 Generate AI RFP
+  // ======================================================
+  static async generateAI(req: Request, res: Response) {
+    try {
+      const userId = Number((req.user as any)?.id);
+      if (!userId || isNaN(userId)) return res.status(401).json({ error: "Unauthorized" });
+
+      const { title, description, category, prompt } = req.body;
+      const rfp = await RFPService.generateAI(title, description, category, prompt, userId);
+
+      return res.status(201).json({ message: "AI RFP generated successfully", rfp });
+
+    } catch (err: any) {
+      console.error("Generate AI RFP Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to generate AI RFP" });
+    }
+  }
+
+  // In RFPController.ts
+static async getQuestions(req: Request, res: Response) {
+  try {
+    const rfpId = Number(req.params.id);
+    if (!rfpId || isNaN(rfpId)) {
+      return res.status(400).json({ error: "Invalid RFP ID" });
+    }
+
+    const questions = await RFPService.getQuestions(rfpId);
+    return res.status(200).json(questions);
+
+  } catch (err: any) {
+    console.error("Get Questions Error:", err);
+    return res.status(500).json({ error: "Failed to load analysis" });
+  }
+}
+
 }

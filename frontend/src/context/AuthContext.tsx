@@ -1,12 +1,7 @@
-// 
-// AuthContext
-// 
-
-import { createContext, useContext, useState, useEffect } from "react";
-import type { ReactNode } from "react";
+// AuthContext.tsx
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface User {
-  updatedAt: string | number;
   id: number;
   name: string;
   email: string;
@@ -15,6 +10,7 @@ export interface User {
   isBusy?: boolean;
   role?: string;
   designation?: string;
+  updatedAt?: string | number;
 }
 
 interface AuthContextType {
@@ -41,18 +37,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (token && userData) {
       try {
-        const parsedUser = JSON.parse(userData);
+        const parsedUser: User = JSON.parse(userData);
         setIsLoggedIn(true);
         setUser(parsedUser);
-        
-        // Optional: Verify with backend and get latest user data
+
+        // Fetch latest user from backend
         fetch(`${BASE_URL}/api/users/${parsedUser.id}`, {
           headers: { Authorization: `Bearer ${token}` },
           credentials: "include",
         })
-          .then((res) => {
-            if (res.ok) return res.json();
-            throw new Error("Failed to fetch user data");
+          .then(async (res) => {
+            if (!res.ok) {
+              // If user not found, clear storage and logout
+              console.warn(`User ${parsedUser.id} not found, clearing storage`);
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              setIsLoggedIn(false);
+              setUser(null);
+              return null;
+            }
+            return res.json();
           })
           .then((data) => {
             if (data) {
@@ -60,12 +64,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               localStorage.setItem("user", JSON.stringify(data));
             }
           })
-          .catch((error) => {
-            console.error("Error fetching user data:", error);            
-          })
+          .catch((err) => console.error("Error fetching user data:", err))
           .finally(() => setInitialized(true));
-      } catch (error) {
-        console.error("Error parsing user data:", error);
+      } catch (err) {
+        console.error("Error parsing user data:", err);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         setInitialized(true);
       }
     } else {
@@ -91,17 +95,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
-  
 
   return (
-    <AuthContext.Provider value={{ 
-      isLoggedIn, 
-      user, 
-      login, 
-      logout, 
-      initialized,
-      updateUser 
-    }}>
+    <AuthContext.Provider
+      value={{ isLoggedIn, user, login, logout, initialized, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

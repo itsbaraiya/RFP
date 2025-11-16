@@ -8,32 +8,33 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  role        Role     @default(CUSTOMER)
-  avatar      String?
-  isBusy      Boolean  @default(false)
-  status      String?
-  designation String?  @default("")
-  rfps        RFP[]
+  id                Int               @id @default(autoincrement())
+  name              String
+  email             String            @unique
+  password          String
+  createdAt         DateTime          @default(now())
+  avatar            String?
+  isBusy            Boolean           @default(false)
+  role              Role              @default(CUSTOMER)
+  status            String?
+  updatedAt         DateTime          @updatedAt
+  designation       String?           @default("")
+  rfps              RFP[]
   rfpCollaborations RFPCollaborator[]
 }
 
 model RFP {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String?
-  filePath    String
-  status      RFPStatus  @default(PENDING)
-  userId      Int
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  questions   Question[]
-  user        User       @relation(fields: [userId], references: [id])
+  id            Int               @id @default(autoincrement())
+  title         String
+  description   String?
+  filePath      String
+  status        RFPStatus         @default(PENDING)
+  userId        Int
+  category    String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  questions     Question[]
+  user          User              @relation(fields: [userId], references: [id])
   collaborators RFPCollaborator[]
 }
 
@@ -47,6 +48,21 @@ model Question {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   rfp               RFP      @relation(fields: [rfpId], references: [id])
+}
+
+model RFPCollaborator {
+  id          Int                @id @default(autoincrement())
+  rfpId       Int
+  userId      Int
+  role        String?            @default("Collaborator")
+  status      CollaboratorStatus @default(INVITED)
+  inviteToken String?
+  invitedAt   DateTime?
+  acceptedAt  DateTime?
+  rfp         RFP                @relation(fields: [rfpId], references: [id], onDelete: Cascade)
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([rfpId, userId])
 }
 
 enum Role {
@@ -66,20 +82,4 @@ enum CollaboratorStatus {
   INVITED
   ACCEPTED
   REVOKED
-}
-
-model RFPCollaborator {
-  id      Int    @id @default(autoincrement())
-  rfpId   Int
-  userId  Int
-  role    String? @default("Collaborator")
-  status     CollaboratorStatus @default(INVITED)
-  inviteToken String? 
-  invitedAt  DateTime? 
-  acceptedAt DateTime?
-
-  rfp     RFP    @relation(fields: [rfpId], references: [id], onDelete: Cascade)
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([rfpId, userId]) // prevent duplicates
 }

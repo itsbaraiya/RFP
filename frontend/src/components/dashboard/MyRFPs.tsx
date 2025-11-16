@@ -1,6 +1,5 @@
-
 //
-//  My RFPs
+// My RFPs — Full Updated with Modals & Toasts
 //
 
 import { useEffect, useState } from "react";
@@ -24,26 +23,35 @@ import {
 import api from "../../api/axios";
 import CreateRFPFlow from "../rfp/CreateRFPFlow";
 
-
 const MyRFPs: React.FC = () => {
   const [rfps, setRfps] = useState<any[]>([]);
   const [loadingRfps, setLoadingRfps] = useState(false);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showCollaboratorModal, setShowCollaboratorModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [analysisQuestions, setAnalysisQuestions] = useState<any[]>([]);
+
 
   const [selectedRFP, setSelectedRFP] = useState<any>(null);
+  const [rfpToDelete, setRfpToDelete] = useState<any>(null);
+
   const [collaborators, setCollaborators] = useState<any[]>([]);
   const [collabLoading, setCollabLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
 
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; variant: "success" | "danger" } | null>(null);
+
   const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5000";
-  
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -51,7 +59,21 @@ const MyRFPs: React.FC = () => {
       setUserId(parsedUser.id);
     }
   }, []);
-  
+
+const handleViewAnalysis = async (rfp: any) => {
+  try {
+    const res = await api.get(`/rfps/${rfp.id}/questions`);
+    setAnalysisQuestions(res.data || []); // <-- just use res.data directly
+    setSelectedRFP(rfp);
+    setShowAnalysisModal(true);
+  } catch (err) {
+    console.error(err);
+    setToast({ message: "Failed to load analysis", variant: "danger" });
+  }
+};
+
+
+
   const fetchRFPs = async () => {
     setLoadingRfps(true);
     setError(null);
@@ -68,16 +90,17 @@ const MyRFPs: React.FC = () => {
   };
 
   useEffect(() => {
-    if (userId !== null) fetchRFPs();    
+    if (userId !== null) fetchRFPs();
   }, [userId]);
-  
+
+  // ---------------- Collaborators ----------------
   const handleCollaboratorClick = async (rfp: any) => {
     setSelectedRFP(rfp);
     setShowCollaboratorModal(true);
     setCollaborators([]);
     setCollabLoading(true);
     setError(null);
-    try {      
+    try {
       const res = await api.get(`/rfps/${rfp.id}/collaborators`);
       setCollaborators(res.data || []);
     } catch (err: any) {
@@ -88,7 +111,7 @@ const MyRFPs: React.FC = () => {
       setCollabLoading(false);
     }
   };
-  
+
   const handleAddCollaborator = async () => {
     if (!collaboratorEmail.trim()) return;
     setAdding(true);
@@ -99,39 +122,65 @@ const MyRFPs: React.FC = () => {
         email: collaboratorEmail.trim(),
       });
 
-      // Option A: optimistic update from response
       const newCollaborator = res.data.collaborator;
       setCollaborators((prev) => [...prev, newCollaborator]);
       setCollaboratorEmail("");
-
-      // Optionally refresh RFP list to show updated data
       await fetchRFPs();
+      setToast({ message: "Collaborator added successfully", variant: "success" });
     } catch (err: any) {
       console.error("Failed to add collaborator:", err);
-      setError(err?.response?.data?.error || err?.message || "Failed to add collaborator");
+      setToast({ message: err?.response?.data?.error || "Failed to add collaborator", variant: "danger" });
     } finally {
       setAdding(false);
     }
   };
-  
+
   const handleRemoveCollaborator = async (userToRemoveId: number) => {
     if (!selectedRFP) return;
     setRemovingId(userToRemoveId);
     setError(null);
     try {
-      await api.delete(`/rfps/${selectedRFP.id}/collaborators/${userToRemoveId}`);      
-      setCollaborators((prev) => prev.filter((c) => c.id !== userToRemoveId));      
+      await api.delete(`/rfps/${selectedRFP.id}/collaborators/${userToRemoveId}`);
+      setCollaborators((prev) => prev.filter((c) => c.id !== userToRemoveId));
       await fetchRFPs();
+      setToast({ message: "Collaborator removed", variant: "success" });
     } catch (err: any) {
       console.error("Failed to remove collaborator:", err);
-      setError(err?.response?.data?.error || "Failed to remove collaborator");
+      setToast({ message: err?.response?.data?.error || "Failed to remove collaborator", variant: "danger" });
     } finally {
       setRemovingId(null);
     }
   };
 
+  // ---------------- Delete RFP ----------------
+  const confirmDeleteRFP = (rfp: any) => {
+    setRfpToDelete(rfp);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteRFP = async () => {
+    if (!rfpToDelete) return;
+
+    setDeletingId(rfpToDelete.id);
+    setError(null);
+
+    try {
+      await api.delete(`/rfps/${rfpToDelete.id}`);
+      setRfps((prev) => prev.filter((r) => r.id !== rfpToDelete.id));
+      setToast({ message: "RFP deleted successfully", variant: "success" });
+    } catch (err: any) {
+      console.error("Failed to delete RFP:", err);
+      setToast({ message: err?.response?.data?.error || "Failed to delete RFP", variant: "danger" });
+    } finally {
+      setDeletingId(null);
+      setShowDeleteModal(false);
+      setRfpToDelete(null);
+    }
+  };
+
   return (
-    <div className="p-4">      
+    <div className="p-4">
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-semibold mb-1">My RFPs</h2>
@@ -153,8 +202,10 @@ const MyRFPs: React.FC = () => {
         </Button>
       </div>
 
+      {/* Error */}
       {error && <Alert variant="danger">{error}</Alert>}
 
+      {/* Loading / Empty / List */}
       {loadingRfps ? (
         <div className="text-center py-5">
           <Spinner animation="border" />
@@ -194,41 +245,65 @@ const MyRFPs: React.FC = () => {
                 </div>
 
                 <div className="d-flex flex-wrap justify-content-between gap-2 mt-3">
-                  <Button variant="outline-primary" size="sm" onClick={() => window.open(`${BASE_URL}${rfp.filePath}`, "_blank")}>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => window.open(`${BASE_URL}${rfp.filePath}`, "_blank")}
+                  >
                     View File
                   </Button>
 
-                  <Button variant="outline-dark" size="sm" onClick={() => handleCollaboratorClick(rfp)}>
+                  <Button
+                    variant="outline-dark"
+                    size="sm"
+                    onClick={() => handleCollaboratorClick(rfp)}
+                  >
                     <Users size={14} className="me-1" /> Collaborators
                   </Button>
 
                   {rfp.status === "ANALYZED" && (
-                    <Button variant="success" size="sm">
+                    <Button variant="success" size="sm" onClick={() => handleViewAnalysis(rfp)}>
                       <CheckCircle2 size={14} className="me-1" /> View Analysis
                     </Button>
                   )}
+
+
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => confirmDeleteRFP(rfp)}
+                    disabled={deletingId === rfp.id}
+                  >
+                    {deletingId === rfp.id ? (
+                      <Spinner as="span" animation="border" size="sm" />
+                    ) : (
+                      "Delete"
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
-      
-      <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)} centered backdrop="static">
+
+      {/* Create RFP Modal */}
+      <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)} centered backdrop="static" size="xl">
         <Modal.Header closeButton>
           <Modal.Title>Create New RFP</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-        <CreateRFPFlow
-          onSuccess={async () => {
-            setShowUploadModal(false);
-            await fetchRFPs();
-          }}
-        />
-      </Modal.Body>
-
+          <CreateRFPFlow
+            onSuccess={async () => {
+              setShowUploadModal(false);
+              await fetchRFPs();
+              setToast({ message: "RFP uploaded successfully", variant: "success" });
+            }}
+          />
+        </Modal.Body>
       </Modal>
-      
+
+      {/* Collaborators Modal */}
       <Modal show={showCollaboratorModal} onHide={() => setShowCollaboratorModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -254,7 +329,7 @@ const MyRFPs: React.FC = () => {
                     <Badge bg="light" text="dark">
                       {col.role || "Collaborator"}
                     </Badge>
-                    
+
                     <Button
                       variant="outline-danger"
                       size="sm"
@@ -275,7 +350,12 @@ const MyRFPs: React.FC = () => {
           <Form>
             <Form.Group>
               <Form.Label>Add Collaborator</Form.Label>
-              <Form.Control type="email" placeholder="Enter collaborator's email" value={collaboratorEmail} onChange={(e) => setCollaboratorEmail(e.target.value)} />
+              <Form.Control
+                type="email"
+                placeholder="Enter collaborator's email"
+                value={collaboratorEmail}
+                onChange={(e) => setCollaboratorEmail(e.target.value)}
+              />
             </Form.Group>
 
             <Button variant="primary" className="mt-3 w-100" onClick={handleAddCollaborator} disabled={adding}>
@@ -290,6 +370,64 @@ const MyRFPs: React.FC = () => {
           </Form>
         </Modal.Body>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete <strong>{rfpToDelete?.title}</strong>? This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+          <Button variant="danger" onClick={handleDeleteRFP} disabled={deletingId === rfpToDelete?.id}>
+            {deletingId === rfpToDelete?.id ? <Spinner as="span" animation="border" size="sm" /> : "Delete"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showAnalysisModal} onHide={() => setShowAnalysisModal(false)} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Analysis — {selectedRFP?.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {analysisQuestions.length === 0 ? (
+            <p>No analysis available yet.</p>
+          ) : (
+            analysisQuestions.map((q, idx) => (
+              <div key={idx} className="mb-3">
+                <strong>Q:</strong> {q.questionText} <br />
+                <strong>AI Suggested:</strong> {q.aiSuggestedAnswer || "-"} <br />
+                <strong>User Answer:</strong> {q.userEditedAnswer || "-"}
+              </div>
+            ))
+          )}
+        </Modal.Body>
+      </Modal>
+
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            top: 20,
+            right: 20,
+            zIndex: 1050,
+            minWidth: "250px",
+          }}
+        >
+          <Alert
+            variant={toast.variant}
+            onClose={() => setToast(null)}
+            dismissible
+            className="shadow-sm"
+          >
+            {toast.message}
+          </Alert>
+        </div>
+      )}
     </div>
   );
 };

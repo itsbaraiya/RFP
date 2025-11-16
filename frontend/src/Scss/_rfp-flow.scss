@@ -1,0 +1,104 @@
+/* Container */
+.rfp-flow-container {
+  max-width: 650px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* Header */
+.rfp-header {
+  text-align: center;
+  margin-bottom: 25px;
+  left: 0;
+}
+.rfp-header h3 {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.rfp-header p {
+  opacity: 0.7;
+}
+
+/* Glassmorphism Card */
+.rfp-card {
+  background: rgba(255,255,255,0.65);
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0px 6px 25px rgba(0,0,0,0.1);
+  backdrop-filter: blur(8px);
+}
+
+/* Inputs */
+.rfp-input {
+  border-radius: 10px !important;
+  padding: 12px !important;
+}
+
+/* Stepper */
+.rfp-stepper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.rfp-stepper .step {
+  width: 35px;
+  height: 35px;
+  background: #dcdcdc;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+}
+.rfp-stepper .step.active {
+  background: #0d6efd;
+  color: white;
+}
+.rfp-stepper .line {
+  width: 40px;
+  height: 3px;
+  background: #dcdcdc;
+}
+.rfp-stepper .line.active {
+  background: #0d6efd;
+}
+
+/* Option Cards */
+.rfp-options {
+  display: flex;
+  gap: 15px;
+}
+.rfp-option-card {
+  flex: 1;
+  padding: 18px;
+  background: #f8f9fa;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 2px solid transparent;
+}
+.rfp-option-card:hover {
+  transform: translateY(-3px);
+  border-color: #0d6efd;
+}
+.rfp-option-card.selected {
+  border-color: #0d6efd;
+  background: #e9f2ff;
+}
+
+/* Buttons */
+.rfp-btn {
+  padding: 10px 30px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+}
+
+/* Fade animation */
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

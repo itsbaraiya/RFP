@@ -13,13 +13,16 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [type, setType] = useState<"upload" | "ai" | "">("");
-  const [filePath, setFilePath] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(33);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const token = localStorage.getItem("token");
+
+  // ---------- STEP HANDLERS ----------
   const handleNext = () => {
     if (step === 1 && (!title || !description)) {
       setError("Please enter both title and description.");
@@ -36,15 +39,16 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
     setProgress(progress - 33);
   };
 
-  const handleUploadComplete = (uploadedPath: string) => {
-    setFilePath(uploadedPath);
-    setStep(3); // Move automatically to Step 3 after upload
+  const handleFileSelect = (selectedFile: File) => {
+    setFile(selectedFile);
+    setStep(3);
     setProgress(99);
   };
 
+  // ---------- SUBMIT RFP ----------
   const handleSubmit = async () => {
-    if (type === "") return setError("Please select an option.");
-    if (type === "upload" && !filePath) return setError("Please upload a file.");
+    if (!type) return setError("Please select an option.");
+    if (type === "upload" && !file) return setError("Please upload a file.");
     if (type === "ai" && !prompt) return setError("Please enter a prompt.");
 
     setError("");
@@ -52,29 +56,36 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
     setMessage("Processing your RFP...");
 
     try {
-      if (type === "upload" && filePath) {
-        await api.post("/rfp/finalize", {
-          title,
-          description,
-          category,
-          filePath,
-          type: "upload",
-        });
-      } else if (type === "ai") {
-        await api.post("/rfp/generate", {
-          title,
-          description,
-          category,
-          prompt,
-          type: "ai",
-        });
-      }
+      if (!token) throw new Error("Authentication required.");
 
-      setMessage("✅ RFP Created Successfully!");
+      if (type === "upload" && file) {
+  const formData = new FormData();
+  formData.append("rfp", file);
+
+  const res = await api.post("/rfps/upload", formData, {
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+  });
+
+  // 🔹 Automatically analyze uploaded file
+  await api.post(`/rfps/${res.data.rfp.id}/analyze`, {}, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  setMessage("✅ RFP uploaded and analyzed successfully!");
+} else if (type === "ai") {
+  const res = await api.post("/rfps/generate", { title, description, category, prompt }, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  setMessage("✅ AI-generated RFP created successfully!");
+}
+
+
+      // Move to success callback
       setTimeout(() => onSuccess(), 1200);
     } catch (err: any) {
-      console.error(err);
-      setError("Failed to create RFP. Please try again.");
+      console.error("RFP submit error:", err.response?.data || err.message);
+      setError(err.response?.data?.error || "Failed to create RFP. Please try again.");
       setMessage("");
     } finally {
       setLoading(false);
@@ -82,108 +93,125 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div>
+    <div className="rfp-flow-container">
+
+      {/* Header */}
+      <div className="rfp-header">
+        <h3>Create your RFP</h3>
+        <p>AI-powered RFP creation in 3 simple steps</p>
+      </div>
+
+      {/* Stepper */}
+      <div className="rfp-stepper mb-4">
+        <div className={`step ${step >= 1 ? "active" : ""}`}>1</div>
+        <div className={`line ${step >= 2 ? "active" : ""}`}></div>
+        <div className={`step ${step >= 2 ? "active" : ""}`}>2</div>
+        <div className={`line ${step >= 3 ? "active" : ""}`}></div>
+        <div className={`step ${step >= 3 ? "active" : ""}`}>3</div>
+      </div>
+
       <ProgressBar now={progress} className="mb-3" />
 
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {/* Step 1 */}
-      {step === 1 && (
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>RFP Title *</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter RFP Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </Form.Group>
+      <div className="rfp-card">
 
-          <Form.Group className="mb-3">
-            <Form.Label>Description *</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Describe your RFP..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </Form.Group>
-
-          <Form.Group>
-            <Form.Label>Category</Form.Label>
-            <Form.Select value={category} onChange={(e) => setCategory(e.target.value)}>
-              <option value="">Select Category</option>
-              <option value="Software">Software Development</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Construction">Construction</option>
-            </Form.Select>
-          </Form.Group>
-        </Form>
-      )}
-
-      {/* Step 2 */}
-      {step === 2 && (
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>Choose Creation Method *</Form.Label>
-            <div className="d-flex gap-4">
-              <Form.Check
-                type="radio"
-                id="upload"
-                label="Upload Existing RFP"
-                name="rfpType"
-                checked={type === "upload"}
-                onChange={() => setType("upload")}
-              />
-              <Form.Check
-                type="radio"
-                id="ai"
-                label="Create with AI"
-                name="rfpType"
-                checked={type === "ai"}
-                onChange={() => setType("ai")}
-              />
-            </div>
-          </Form.Group>
-
-          {type === "upload" && (
-            <RFPUpload
-              onSuccess={handleUploadComplete}
-              hideTitle
-              compact
-            />
-          )}
-
-          {type === "ai" && (
+        {/* STEP 1: Details */}
+        {step === 1 && (
+          <Form className="fade-in">
             <Form.Group className="mb-3">
-              <Form.Label>Describe your RFP requirements *</Form.Label>
+              <Form.Label>RFP Title *</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="e.g. CRM Software Development RFP"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Description *</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={3}
-                placeholder="Example: I need a proposal for a CRM system redesign..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Briefly describe your project requirements..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </Form.Group>
-          )}
-        </Form>
-      )}
 
-      {/* Step 3 */}
-      {step === 3 && (
-        <div className="text-center py-4">
-          {loading ? (
-            <>
-              <Spinner animation="border" className="mb-3" />
-              <p>{message}</p>
-            </>
-          ) : (
-            <p>{message || "Ready to submit your RFP."}</p>
-          )}
-        </div>
-      )}
+            <Form.Group>
+              <Form.Label>Category</Form.Label>
+              <Form.Select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option value="">Select Category</option>
+                <option value="Software">Software Development</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Construction">Construction</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        )}
+
+        {/* STEP 2: Upload or AI */}
+        {step === 2 && (
+          <div className="fade-in">
+            <Form.Group className="mb-4">
+              <Form.Label>Choose creation method *</Form.Label>
+              <div className="rfp-options">
+                <div
+                  className={`rfp-option-card ${type === "upload" ? "selected" : ""}`}
+                  onClick={() => setType("upload")}
+                >
+                  <h5>📄 Upload Existing RFP</h5>
+                  <p>Upload your document and let AI process it.</p>
+                </div>
+
+                <div
+                  className={`rfp-option-card ${type === "ai" ? "selected" : ""}`}
+                  onClick={() => setType("ai")}
+                >
+                  <h5>🤖 Generate with AI</h5>
+                  <p>Describe your needs and AI will generate the RFP.</p>
+                </div>
+              </div>
+            </Form.Group>
+
+            {type === "upload" && (
+              <RFPUpload onSuccess={handleFileSelect} hideTitle compact />
+            )}
+
+            {type === "ai" && (
+              <Form.Group className="fade-in">
+                <Form.Label>Describe your requirements *</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Example: I need a proposal for redesigning our CRM system..."
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                />
+              </Form.Group>
+            )}
+          </div>
+        )}
+
+        {/* STEP 3: Submit */}
+        {step === 3 && (
+          <div className="text-center fade-in">
+            {loading ? (
+              <>
+                <Spinner animation="border" className="mb-3" />
+                <p className="fw-semibold">{message}</p>
+              </>
+            ) : (
+              <p className="fw-semibold">{message || "Ready to submit your RFP."}</p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Footer Buttons */}
       <div className="d-flex justify-content-between mt-4">
