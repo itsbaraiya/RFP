@@ -1,5 +1,5 @@
-// AuthContext.tsx
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 
 export interface User {
   id: number;
@@ -41,14 +41,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsLoggedIn(true);
         setUser(parsedUser);
 
-        // Fetch latest user from backend
         fetch(`${BASE_URL}/api/users/${parsedUser.id}`, {
           headers: { Authorization: `Bearer ${token}` },
           credentials: "include",
         })
           .then(async (res) => {
             if (!res.ok) {
-              // If user not found, clear storage and logout
               console.warn(`User ${parsedUser.id} not found, clearing storage`);
               localStorage.removeItem("token");
               localStorage.removeItem("user");

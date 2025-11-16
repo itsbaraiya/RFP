@@ -24,8 +24,13 @@ const storage = multer_1.default.diskStorage({
 const upload = (0, multer_1.default)({ storage });
 router.post("/upload", auth_1.authMiddleware, upload.single("rfp"), RFPController_1.RFPController.upload);
 router.get("/", auth_1.authMiddleware, RFPController_1.RFPController.getAll);
+router.post("/generate", auth_1.authMiddleware, RFPController_1.RFPController.generateAI);
 router.post("/analyze/:rfpId", auth_1.authMiddleware, RFPController_1.RFPController.analyze);
 router.get("/:id/collaborators", auth_1.authMiddleware, RFPController_1.RFPController.getCollaborators);
 router.post("/:id/collaborators", auth_1.authMiddleware, RFPController_1.RFPController.addCollaborator);
+router.delete("/:id", auth_1.authMiddleware, RFPController_1.RFPController.deleteRFP);
+// GET /rfps/:id/questions
+// GET all questions for a specific RFP
+router.get("/:id/questions", auth_1.authMiddleware, RFPController_1.RFPController.getQuestions);
 // router.delete("/:id/collaborators/:userId", authMiddleware, RFPController.removeCollaborator);
 exports.default = router;

@@ -27,7 +27,7 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
     }
 
     const formData = new FormData();
-    formData.append("rfp", file); // ⚠️ REAL FIELD NAME
+    formData.append("rfp", file);
 
     try {
       setIsUploading(true);
@@ -37,8 +37,6 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("Upload Response:", res.data);
-
       const uploaded = res.data?.rfp;
       if (!uploaded) {
         setMessage("❌ Backend did not return RFP data.");
@@ -46,18 +44,12 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
       }
 
       setMessage(`✅ ${res.data.message || "RFP uploaded successfully!"}`);
-
-      // send entire rfp object: { id, filePath }
       if (onSuccess) await onSuccess(uploaded);
-
     } catch (error: any) {
       console.error("Upload error:", error);
-
       if (error.response) {
         const backendError =
-          error.response.data?.error ||
-          error.response.data?.message ||
-          "Upload failed from backend.";
+          error.response.data?.error || error.response.data?.message || "Upload failed from backend.";
         setMessage(`❌ ${backendError}`);
       } else {
         setMessage(`❌ ${error.message}`);
@@ -141,9 +133,7 @@ const RFPUpload: React.FC<RFPUploadProps> = ({ onSuccess, hideTitle, compact }) 
 
       {message && (
         <p
-          className={`mt-3 fw-semibold ${
-            message.startsWith("✅") ? "text-success" : "text-danger"
-          }`}
+          className={`mt-3 fw-semibold ${message.startsWith("✅") ? "text-success" : "text-danger"}`}
         >
           {message}
         </p>

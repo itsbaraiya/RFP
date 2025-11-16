@@ -13,7 +13,7 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [type, setType] = useState<"upload" | "ai" | "">("");
-  const [file, setFile] = useState<File | null>(null);
+  const [fileData, setFileData] = useState<{ id: number; filePath: string } | null>(null);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(33);
@@ -22,7 +22,6 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
 
   const token = localStorage.getItem("token");
 
-  // ---------- STEP HANDLERS ----------
   const handleNext = () => {
     if (step === 1 && (!title || !description)) {
       setError("Please enter both title and description.");
@@ -39,16 +38,15 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
     setProgress(progress - 33);
   };
 
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
+  const handleFileSelect = (rfp: { id: number; filePath: string }) => {
+    setFileData(rfp);
     setStep(3);
     setProgress(99);
   };
 
-  // ---------- SUBMIT RFP ----------
   const handleSubmit = async () => {
     if (!type) return setError("Please select an option.");
-    if (type === "upload" && !file) return setError("Please upload a file.");
+    if (type === "upload" && !fileData) return setError("Please upload a file.");
     if (type === "ai" && !prompt) return setError("Please enter a prompt.");
 
     setError("");
@@ -58,30 +56,20 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
     try {
       if (!token) throw new Error("Authentication required.");
 
-      if (type === "upload" && file) {
-  const formData = new FormData();
-  formData.append("rfp", file);
+      if (type === "upload" && fileData) {
+        await api.post(`/rfps/${fileData.id}/analyze`, {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-  const res = await api.post("/rfps/upload", formData, {
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-  });
+        setMessage("✅ RFP uploaded and analyzed successfully!");
+      } else if (type === "ai") {
+        await api.post("/rfps/generate", { title, description, category, prompt }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-  // 🔹 Automatically analyze uploaded file
-  await api.post(`/rfps/${res.data.rfp.id}/analyze`, {}, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+        setMessage("✅ AI-generated RFP created successfully!");
+      }
 
-  setMessage("✅ RFP uploaded and analyzed successfully!");
-} else if (type === "ai") {
-  const res = await api.post("/rfps/generate", { title, description, category, prompt }, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  setMessage("✅ AI-generated RFP created successfully!");
-}
-
-
-      // Move to success callback
       setTimeout(() => onSuccess(), 1200);
     } catch (err: any) {
       console.error("RFP submit error:", err.response?.data || err.message);
@@ -94,14 +82,11 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
 
   return (
     <div className="rfp-flow-container">
-
-      {/* Header */}
       <div className="rfp-header">
         <h3>Create your RFP</h3>
         <p>AI-powered RFP creation in 3 simple steps</p>
       </div>
 
-      {/* Stepper */}
       <div className="rfp-stepper mb-4">
         <div className={`step ${step >= 1 ? "active" : ""}`}>1</div>
         <div className={`line ${step >= 2 ? "active" : ""}`}></div>
@@ -115,8 +100,6 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
       {error && <Alert variant="danger">{error}</Alert>}
 
       <div className="rfp-card">
-
-        {/* STEP 1: Details */}
         {step === 1 && (
           <Form className="fade-in">
             <Form.Group className="mb-3">
@@ -155,7 +138,6 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
           </Form>
         )}
 
-        {/* STEP 2: Upload or AI */}
         {step === 2 && (
           <div className="fade-in">
             <Form.Group className="mb-4">
@@ -179,10 +161,7 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
               </div>
             </Form.Group>
 
-            {type === "upload" && (
-              <RFPUpload onSuccess={handleFileSelect} hideTitle compact />
-            )}
-
+            {type === "upload" && <RFPUpload onSuccess={handleFileSelect} hideTitle compact />}
             {type === "ai" && (
               <Form.Group className="fade-in">
                 <Form.Label>Describe your requirements *</Form.Label>
@@ -198,7 +177,6 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
           </div>
         )}
 
-        {/* STEP 3: Submit */}
         {step === 3 && (
           <div className="text-center fade-in">
             {loading ? (
@@ -213,28 +191,11 @@ const CreateRFPFlow: React.FC<CreateRFPFlowProps> = ({ onSuccess }) => {
         )}
       </div>
 
-      {/* Footer Buttons */}
       <div className="d-flex justify-content-between mt-4">
-        {step > 1 && step < 3 && (
-          <Button variant="outline-secondary" onClick={handleBack}>
-            Back
-          </Button>
-        )}
-        {step === 1 && (
-          <Button variant="primary" onClick={handleNext}>
-            Next
-          </Button>
-        )}
-        {step === 2 && type === "ai" && (
-          <Button variant="primary" onClick={() => setStep(3)}>
-            Continue
-          </Button>
-        )}
-        {step === 3 && (
-          <Button variant="success" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Processing..." : "Submit RFP"}
-          </Button>
-        )}
+        {step > 1 && step < 3 && <Button variant="outline-secondary" onClick={handleBack}>Back</Button>}
+        {step === 1 && <Button variant="primary" onClick={handleNext}>Next</Button>}
+        {step === 2 && type === "ai" && <Button variant="primary" onClick={() => setStep(3)}>Continue</Button>}
+        {step === 3 && <Button variant="success" onClick={handleSubmit} disabled={loading}>{loading ? "Processing..." : "Submit RFP"}</Button>}
       </div>
     </div>
   );
