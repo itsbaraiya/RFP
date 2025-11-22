@@ -31,7 +31,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  useEffect(() => {
+useEffect(() => {
+  const initializeAuth = async () => {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
 
@@ -41,39 +42,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsLoggedIn(true);
         setUser(parsedUser);
 
-        fetch(`${BASE_URL}/api/users/${parsedUser.id}`, {
+        // Verify token with backend
+        const res = await fetch(`${BASE_URL}/api/users/${parsedUser.id}`, {
           headers: { Authorization: `Bearer ${token}` },
-          credentials: "include",
-        })
-          .then(async (res) => {
-            if (!res.ok) {
-              console.warn(`User ${parsedUser.id} not found, clearing storage`);
-              localStorage.removeItem("token");
-              localStorage.removeItem("user");
-              setIsLoggedIn(false);
-              setUser(null);
-              return null;
-            }
-            return res.json();
-          })
-          .then((data) => {
-            if (data) {
-              setUser(data);
-              localStorage.setItem("user", JSON.stringify(data));
-            }
-          })
-          .catch((err) => console.error("Error fetching user data:", err))
-          .finally(() => setInitialized(true));
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+          localStorage.setItem("user", JSON.stringify(data));
+        } else if (res.status === 401) {
+          // Token invalid
+          logout();
+        }
       } catch (err) {
-        console.error("Error parsing user data:", err);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setInitialized(true);
+        console.error("Auth initialization error:", err);
+        // Do NOT logout for parse errors, just mark initialized
       }
-    } else {
-      setInitialized(true);
     }
-  }, []);
+    setInitialized(true);
+  };
+
+  initializeAuth();
+}, []);
+
 
   const login = (token: string, userData: User) => {
     localStorage.setItem("token", token);
