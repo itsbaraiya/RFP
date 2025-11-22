@@ -13,7 +13,7 @@ const path_1 = __importDefault(require("path"));
 const pdf_lib_1 = require("pdf-lib");
 dotenv_1.default.config();
 const prisma = new client_1.PrismaClient();
-const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY});
+const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
 const sanitizeFileName = (title) => title.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
 class RFPService {
     static async upload(req, userId) {
