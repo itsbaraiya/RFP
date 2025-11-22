@@ -9,7 +9,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 dotenv.config();
 
 const prisma = new PrismaClient();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "dummy-key" });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const sanitizeFileName = (title: string) =>
   title.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
