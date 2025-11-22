@@ -188,7 +188,7 @@ const MyRFPs: React.FC = () => {
 
   // ---------------- View File helper ----------------
   const handleViewFile = (rfp: any) => {
-    window.open(`${BASE_URL}/${rfp.filePath}`, "_blank");
+  window.open(`/${rfp.filePath}`, "_blank");
   };
 
   return (
