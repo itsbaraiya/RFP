@@ -47,8 +47,6 @@ const MyRFPs: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; variant: "success" | "danger" } | null>(null);
 
-  const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5000";
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
