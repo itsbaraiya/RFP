@@ -61,7 +61,7 @@ export class UserController {
       if (role !== undefined) updateData.role = role;
 
       if (req.file) {
-        updateData.avatar = `/uploads/${req.file.filename}`;
+        updateData.avatar = `/api/uploads/${req.file.filename}`;
       }
 
       const result = await UserService.updateUser(id, updateData);

@@ -3,7 +3,7 @@
 // 
 
 import { Edit, Facebook, Instagram, Linkedin, Github } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth, getAvatarURL } from "../../context/AuthContext";
 import Loader from "../common/Loader";
 
 
@@ -26,7 +26,7 @@ const Home = () => {
                             <div className="profile__avatar">
                                 <img
                                     key={user.avatar}
-                                    src={user.avatar + `?v=${user.updatedAt || Date.now()}`}
+                                    src={`${getAvatarURL(user.avatar)}?v=${user.updatedAt || Date.now()}`}
                                     alt={user.name}
                                     />
 

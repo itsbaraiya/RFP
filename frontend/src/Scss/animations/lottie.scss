@@ -1,6 +1,7 @@
 .empty-lottie {
     max-width: 250px;
     margin: 0 auto;
+    margin-bottom: 25px;
     width: 100%;
 
     @include media-breakpoint-up(md) {
@@ -15,7 +16,7 @@
         max-width: 550px;
     }
 
-    &____animation {
+    &__animation {
         align-items: center;
         display: flex;
         flex-direction: column;

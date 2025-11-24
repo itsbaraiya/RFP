@@ -27,25 +27,32 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const getAvatarURL = (avatar?: string) => {
-  const BASE_URL = import.meta.env.VITE_BASE_URL; // http://localhost:5000/api
-  if (!avatar) return `${BASE_URL}/uploads/images/user/userplaceholder.avif`;
-  if (avatar.startsWith("http") || avatar.startsWith("blob:")) {
-    return avatar;
+  const BASE_URL = import.meta.env.VITE_BASE_URL; // https://rfp-a4lu.onrender.com/api
+
+  if (!avatar) {
+    return `${BASE_URL}/uploads/images/user/userplaceholder.avif`;
   }
 
-  let cleanAvatar = avatar;
+  let clean = avatar.trim();
 
-  if (BASE_URL.endsWith("/api") && avatar.startsWith("/api")) {
-    cleanAvatar = avatar.replace("/api", "");
+  // ❌ Remove any localhost URL
+  clean = clean.replace("http://localhost:5000", "");
+  clean = clean.replace("http://127.0.0.1:5000", "");
+
+  // If avatar STILL begins with full external URL (like Cloudinary)
+  if (clean.startsWith("http") || clean.startsWith("blob:")) {
+    return clean;
   }
 
-  if (!cleanAvatar.startsWith("/")) {
-    cleanAvatar = "/" + cleanAvatar;
-  }
+  // Ensure it starts with /
+  if (!clean.startsWith("/")) clean = "/" + clean;
 
-  return `${BASE_URL}${cleanAvatar}`;
+  // Ensure it has /api
+  if (!clean.startsWith("/api")) clean = "/api" + clean;
+
+  // Attach correct deployed base URL
+  return `${BASE_URL.replace(/\/api$/, "")}${clean}`;
 };
-
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

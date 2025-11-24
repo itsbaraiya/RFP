@@ -25,7 +25,7 @@ const EditProfile: React.FC = () => {
       setStatus(user.status ?? "");
       setDesignation(user.designation ?? "");
       setIsBusy(user.isBusy ?? false);
-      setAvatarPreview(user.avatar ?? "");
+      setAvatarPreview(getAvatarURL(user.avatar));
     }
   }, [user]);
 
