@@ -12,7 +12,7 @@ import Why from "../components/home/WhyChoose";
 export default function Home() {
   return (
     <div>
-      <LandingSection />      
+      <LandingSection />
       <Ai />
       <How />
       <FeatureSection />

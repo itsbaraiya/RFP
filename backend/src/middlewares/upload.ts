@@ -18,8 +18,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const fileName = `profile-pic${ext}`; // Always same name
-    
+    const fileName = `profile-pic${ext}`;
     const existingFiles = fs.readdirSync(uploadDir);
     const oldFile = existingFiles.find(f => f.startsWith("profile-pic"));
     if (oldFile) {

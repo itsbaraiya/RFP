@@ -1,11 +1,9 @@
-// 
-// Login
-// 
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
+import Lottie from "lottie-react";
+import successAnimation from "../../assets/lottie/Success.json";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -13,19 +11,24 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const particles = Array.from({ length: 30 });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await api.post("/auth/login", { email, password });
-      login(res.data.token, res.data.user);
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const res = await api.post("/auth/login", { email, password });
+    login(res.data.token, res.data.user);
+    setShowSuccess(true);
+    setTimeout(() => {
       navigate("/dashboard", { replace: true });
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
-    }
-  };
+    }, 1600);
+  } catch (err: any) {
+    setError(err.response?.data?.message || "Login failed");
+  }
+};
+
 
   return (
     <div className="login-container">
@@ -53,23 +56,30 @@ const Login: React.FC = () => {
 
           {error && <div className="alert alert-danger">{error}</div>}
 
-          <form onSubmit={handleSubmit}>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button type="submit">Login</button>
-          </form>
+          {!showSuccess ? (
+            <form onSubmit={handleSubmit}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button type="submit">Login</button>
+            </form>
+          ) : (
+            <div className="lottie-success">
+              <Lottie animationData={successAnimation} loop={false} />
+              <p>Login Successful!</p>
+            </div>
+          )}
 
           <p>
             Don’t have an account? <a href="/register">Sign Up</a>

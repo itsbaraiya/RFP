@@ -63,7 +63,7 @@ export class AuthService {
       } else if (user.avatar.startsWith("/uploads")) {    
         avatarUrl = `${baseUrl}${user.avatar}`;
       } else {    
-        avatarUrl = `${baseUrl}/uploads/${user.avatar}`;
+        avatarUrl = `${baseUrl}${user.avatar}`;
       }
     }
     
@@ -77,6 +77,7 @@ export class AuthService {
         status: user.status,
         isBusy: user.isBusy,
         avatar: avatarUrl,
+        designation: user.designation || "",
       },
     };
   }

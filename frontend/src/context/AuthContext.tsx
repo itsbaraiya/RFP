@@ -1,5 +1,7 @@
+// AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from "react";
-import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 export interface User {
   id: number;
@@ -14,89 +16,111 @@ export interface User {
 }
 
 interface AuthContextType {
-  isLoggedIn: boolean;
   user: User | null;
+  loading: boolean;
+  initialized: boolean;
+  isLoggedIn: boolean;
   login: (token: string, userData: User) => void;
   logout: () => void;
-  initialized: boolean;
   updateUser: (userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const getAvatarURL = (avatar?: string) => {
+  const BASE_URL = import.meta.env.VITE_BASE_URL; // http://localhost:5000/api
+  if (!avatar) return `${BASE_URL}/uploads/images/user/userplaceholder.avif`;
+  if (avatar.startsWith("http") || avatar.startsWith("blob:")) {
+    return avatar;
+  }
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  let cleanAvatar = avatar;
+
+  if (BASE_URL.endsWith("/api") && avatar.startsWith("/api")) {
+    cleanAvatar = avatar.replace("/api", "");
+  }
+
+  if (!cleanAvatar.startsWith("/")) {
+    cleanAvatar = "/" + cleanAvatar;
+  }
+
+  return `${BASE_URL}${cleanAvatar}`;
+};
+
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const navigate = useNavigate();
+  const isLoggedIn = !!user;
 
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
-
-useEffect(() => {
-  const initializeAuth = async () => {
+  useEffect(() => {
+  const init = async () => {
     const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-
-    if (token && userData) {
-      try {
-        const parsedUser: User = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUser(parsedUser);
-
-        // Verify token with backend
-        const res = await fetch(`${BASE_URL}/api/users/${parsedUser.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-          localStorage.setItem("user", JSON.stringify(data));
-        } else if (res.status === 401) {
-          // Token invalid
-          logout();
-        }
-      } catch (err) {
-        console.error("Auth initialization error:", err);
-        // Do NOT logout for parse errors, just mark initialized
-      }
+    if (!token) {
+      setLoading(false);
+      setInitialized(true);
+      return;
     }
+
+    try {
+      const res = await api.get("/auth/user");
+      const userData = {
+        ...res.data,
+        avatar: getAvatarURL(res.data.avatar),
+        designation: res.data.designation || "",
+      };
+
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+    } catch (err) {
+      setUser(null);
+    }
+
+    setLoading(false);
     setInitialized(true);
   };
 
-  initializeAuth();
+  init();
 }, []);
 
+  const normalizeUser = (userData: User) => ({
+  ...userData,
+  avatar: getAvatarURL(userData.avatar),
+  designation: userData.designation || "",
+});
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setIsLoggedIn(true);
-    setUser(userData);
-  };
+const login = (token: string, userData: User) => {
+  const normalizedUser = normalizeUser(userData);
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(normalizedUser));
+  setUser(normalizedUser);
+};
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setIsLoggedIn(false);
     setUser(null);
+    navigate("/login", { replace: true });
   };
+
 
   const updateUser = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-  };
+  const normalizedUser = normalizeUser(userData);
+  localStorage.setItem("user", JSON.stringify(normalizedUser));
+  setUser(normalizedUser);
+};
+
 
   return (
-    <AuthContext.Provider
-      value={{ isLoggedIn, user, login, logout, initialized, updateUser }}
-    >
+    <AuthContext.Provider value={{ user, loading, initialized, login, logout, updateUser,isLoggedIn }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
 };

@@ -15,3 +15,9 @@
 @import './header';
 @import './login';
 @import './rfp-flow';
+
+// mixins
+@import './mixins/mixins.scss';
+
+// lottie
+@import './animations/lottie.scss';

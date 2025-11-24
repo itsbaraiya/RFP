@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import CreateRFPFlow from "../rfp/CreateRFPFlow";
+import Lottie from "lottie-react";
+import emptyAnimation from "../../assets/lottie/empty.json";
+
 
 const MyRFPs: React.FC = () => {
   const [rfps, setRfps] = useState<any[]>([]);
@@ -40,10 +43,8 @@ const MyRFPs: React.FC = () => {
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
-
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; variant: "success" | "danger" } | null>(null);
 
@@ -73,6 +74,14 @@ const MyRFPs: React.FC = () => {
   useEffect(() => {
     if (userId !== null) fetchRFPs();
   }, [userId]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
 
   // ---------------- Collaborators ----------------
   const handleCollaboratorClick = async (rfp: any) => {
@@ -166,9 +175,7 @@ const MyRFPs: React.FC = () => {
     setAnalysisSummary("");
     try {
       const res = await api.get(`/rfps/${rfp.id}/questions`);
-      // res.data = { summary: string, questions: Question[] }
       setAnalysisSummary(res.data.summary || rfp.description || "");
-      // Map returned DB fields to consistent frontend keys
       const questions = (res.data.questions || []).map((q: any) => ({
         id: q.id,
         questionText: q.questionText ?? q.question ?? q.text ?? "",
@@ -186,12 +193,13 @@ const MyRFPs: React.FC = () => {
 
   // ---------------- View File helper ----------------
   const handleViewFile = (rfp: any) => {
-  window.open(`/${rfp.filePath}`, "_blank");
-  };
+    const relativePath = rfp.filePath.replace("uploads/", "");
+    window.open(`/files/${relativePath}`, "_blank");
+ };
+
 
   return (
     <div className="p-4">
-      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-semibold mb-1">My RFPs</h2>
@@ -212,18 +220,23 @@ const MyRFPs: React.FC = () => {
           <UploadCloud size={18} /> Create RFP
         </Button>
       </div>
+      {error && (
+        <Alert
+          variant="danger"
+          onClose={() => setError(null)}
+          dismissible
+        >
+          {error}
+        </Alert>
+      )}
 
-      {/* Error */}
-      {error && <Alert variant="danger">{error}</Alert>}
-
-      {/* Loading / Empty / List */}
       {loadingRfps ? (
         <div className="text-center py-5">
           <Spinner animation="border" />
         </div>
       ) : rfps.length === 0 ? (
-        <div className="text-center py-5 text-muted">
-          <FileText size={48} className="mb-3 opacity-50" />
+        <div className="empty-lottie__animation">
+          <Lottie animationData={emptyAnimation} loop className="empty-lottie"/>
           <p className="fs-5">No RFPs uploaded yet</p>
           <p className="small text-secondary">Start by uploading your first RFP to analyze and collaborate.</p>
         </div>
@@ -457,14 +470,15 @@ const MyRFPs: React.FC = () => {
         >
           <Alert
             variant={toast.variant}
-            onClose={() => setToast(null)}
             dismissible
-            className="shadow-sm"
+            onClose={() => setToast(null)}
+            className="shadow-sm fade show"
           >
             {toast.message}
           </Alert>
         </div>
       )}
+
     </div>
   );
 };

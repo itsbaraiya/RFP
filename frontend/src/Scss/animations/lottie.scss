@@ -1,0 +1,24 @@
+.empty-lottie {
+    max-width: 250px;
+    margin: 0 auto;
+    width: 100%;
+
+    @include media-breakpoint-up(md) {
+        max-width: 300px;
+    }
+
+    @include media-breakpoint-up(lg) {
+        max-width: 400px;
+    }
+
+    @include media-breakpoint-up(xl) {
+        max-width: 550px;
+    }
+
+    &____animation {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center ;
+    }
+}

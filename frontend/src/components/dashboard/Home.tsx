@@ -4,12 +4,12 @@
 
 import { Edit, Facebook, Instagram, Linkedin, Github } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import Loader from "../common/Loader";
+
 
 const Home = () => {
     const { user, initialized } = useAuth();
-    const BASE_URL = import.meta.env.VITE_BASE_URL;
-  
-    if (!initialized) return <div className="loading">Loading user data...</div>;
+    if (!initialized) return <Loader />;
     if (!user) return <div className="no-user">No user found. Please log in.</div>;
     return (
         <div className="profile">        
@@ -24,17 +24,12 @@ const Home = () => {
 
                             <div className="profile__info">
                             <div className="profile__avatar">
-                            <img
-                                key={user.avatar}
-                                src={
-                                    user.avatar
-                                    ? user.avatar.startsWith("http")
-                                        ? `${user.avatar}?v=${user.updatedAt || Date.now()}`
-                                        : `${BASE_URL}${user.avatar}?v=${user.updatedAt || Date.now()}`
-                                    : `${BASE_URL}/uploads/images/user/userplaceholder.avif`
-                                }
-                                alt={user.name}
-                                />
+                                <img
+                                    key={user.avatar}
+                                    src={user.avatar + `?v=${user.updatedAt || Date.now()}`}
+                                    alt={user.name}
+                                    />
+
                             </div>
 
                             <div className="profile__details">

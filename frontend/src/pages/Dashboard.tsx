@@ -11,6 +11,8 @@ import Analytics from "../components/dashboard/Analytics";
 import CreditPlans from "../components/admin/CreditPlans";
 import AIModelConfigs from "../components/admin/AIModelConfigs";
 import MyRFPs from "../components/dashboard/MyRFPs";
+import { useAuth } from "../context/AuthContext";
+
 
 import {
   LayoutDashboard,
@@ -30,22 +32,19 @@ const Dashboard = () => {
   const profileRef = useRef<HTMLDivElement>(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-
-    if (!storedUser || !token) {
-      navigate("/login");
-      return;
-    }
+useEffect(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
     setUser(JSON.parse(storedUser));
-  }, [navigate]);
+  }
+}, []);
+
+
+const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
+    logout();
+};
   
   const menuConfig: Record<string, any[]> = {
     ADMIN: [
@@ -58,7 +57,7 @@ const Dashboard = () => {
     ],
     CUSTOMER: [
       { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { key: "myrfps", label: "My RFPs", icon: Edit3 }, // 🆕 Added
+      { key: "myrfps", label: "My RFPs", icon: Edit3 },
       { key: "collaborators", label: "Collaborators", icon: Users },
       { key: "credits", label: "Credits & Billing", icon: Tag },
       { key: "analytics", label: "Usage Analytics", icon: Grid },

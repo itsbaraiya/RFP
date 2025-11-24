@@ -34,45 +34,46 @@ export class UserService {
   }
 
   static async updateUser(
-    id: number,
-    data: Partial<{
-      name: string;
-      email: string;
-      avatar: string | null;
-      status: string;
-      isBusy: boolean;
-      role: Role;
-      designation?: string;
-    }>
-  ): Promise<{ user: User; token?: string } | null> {
-    try {
-      const updatedUser = await prisma.user.update({
-        where: { id },
-        data: {
-          name: data.name,
-          email: data.email,
-          avatar: data.avatar,
-          status: data.status,
-          designation: data.designation,
-          isBusy: data.isBusy,
-          role: data.role,
-        },
-      });
+  id: number,
+  data: Partial<{
+    name: string;
+    email: string;
+    avatar: string | null;
+    status: string;
+    isBusy: boolean;
+    role: Role;
+    designation?: string;
+  }>
+): Promise<{ user: User; token?: string } | null> {
+  try {
+    const updateFields: any = {};
+    if (data.name !== undefined) updateFields.name = data.name;
+    if (data.email !== undefined) updateFields.email = data.email;
+    if (data.status !== undefined) updateFields.status = data.status;
+    if (data.isBusy !== undefined) updateFields.isBusy = data.isBusy;
+    if (data.role !== undefined) updateFields.role = data.role;
+    if (data.designation !== undefined) updateFields.designation = data.designation;
+    if (data.avatar !== undefined) updateFields.avatar = data.avatar;
 
-      let token;
-      if (data.role || data.email) {
-        token = jwt.sign(
-          { id: updatedUser.id, email: updatedUser.email, role: updatedUser.role },
-          process.env.JWT_SECRET!,
-          { expiresIn: "1d" }
-        );
-      }
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: updateFields,
+    });
 
-      return { user: updatedUser, token };
-    } catch (err) {
-      console.error("Error updating user:", err);
-      return null;
+    let token;
+    if (data.role || data.email) {
+      token = jwt.sign(
+        { id: updatedUser.id, email: updatedUser.email, role: updatedUser.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: "1d" }
+      );
     }
+
+    return { user: updatedUser, token };
+  } catch (err) {
+    console.error("Error updating user:", err);
+    return null;
+  }
   }
 
   static async deleteUser(id: number): Promise<boolean> {

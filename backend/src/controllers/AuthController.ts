@@ -39,13 +39,13 @@ export class AuthController {
           status: true,
           isBusy: true,
           role: true,
+          designation: true,
         },
       });
       if (!user) return res.status(404).json({ message: "User not found" });
 
-      // ✅ Also return full avatar URL here
       const baseUrl = process.env.BASE_URL || "http://localhost:5000";
-      const avatarUrl = user.avatar ? `${baseUrl}/uploads/${user.avatar}` : null;
+      const avatarUrl = user.avatar ? `${baseUrl}${user.avatar}` : null;
 
       res.json({ ...user, avatar: avatarUrl });
     } catch (err: any) {
