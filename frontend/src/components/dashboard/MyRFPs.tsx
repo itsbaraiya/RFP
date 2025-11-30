@@ -236,7 +236,7 @@ const MyRFPs: React.FC = () => {
         </div>
       ) : rfps.length === 0 ? (
         <div className="empty-lottie__animation">
-          <Lottie animationData={emptyAnimation} loop className="empty-lottie"/>
+          <Lottie animationData={emptyAnimation} loop={false} className="empty-lottie"/>
           <p className="fs-5">No RFPs uploaded yet</p>
           <p className="small text-secondary">Start by uploading your first RFP to analyze and collaborate.</p>
         </div>
