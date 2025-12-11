@@ -1,0 +1,66 @@
+//****************************************************************************
+//  Bootstrap variables overrides
+//***************************************************************************/
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+$font-primary: $font-family-sans-serif;
+$btn-box-shadow: none;
+
+// Grid breakpoints
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px,
+  xxxl: 1900px,
+) !default;
+
+//****************************************************************************
+//  Custom variables
+//***************************************************************************/
+$primary-color: #3b82f6;
+$secondary-color: #0063d7;
+$secondary-light-color: #007bff;
+$text-color: #000;
+$text-light-color: #00000029;
+$text-muted-color: #141414;
+$text-muted-dark-color-1: #434343;
+$text-muted-dark-color-2: #444444;
+$text-muted-light: #252525;
+$text-muted-dark-color: #737373;
+$brand-color: $primary-color;
+$input-bg-color: #e3e3e3;
+$input-bg-low-contrast: #535353;
+$dropdown-bg-color: #fafafa;
+
+$body-color: $text-color;
+$brand-color-dark-gray: #c6c6c6;
+$brand-color-gray: #d9d9d9;
+$brand-color-gray-medium: #b1b1b1;
+$brand-color-light-gray: #e9e9e9;
+$brand-color-extra-light-gray: #e1e1e1;
+$brand-color-milky-white: #f2f2f2;
+$light-color-gray: #efefef;
+$table-hover-bg: $brand-color-gray;
+$input-color: $body-color;
+$input-error-color: #dd4967;
+$green-color: #40ae49;
+$white: #fff;
+$black: #000;
+
+// Dark theme colors
+$dark-bg: #141414;
+$dark-text: #fff;
+$dark-input-bg: rgba(255, 255, 255, 0.05);
+$dark-input-border: rgba(255, 255, 255, 0.1);
+
+//****************************************************************************
+//  Font Weight
+//***************************************************************************/
+$light-weight: 300;
+$regular-weight: 400;
+$medium-weight: 500;
+$semi-bold-weight: 600;
+$bold-weight: 700;
+

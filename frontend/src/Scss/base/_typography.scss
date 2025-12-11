@@ -1,0 +1,231 @@
+/****************************************************************************
+  Typography
+***************************************************************************/
+
+// code for API jump to scrolling
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  @include font-size($font-sizes18);
+  font-family: $font-primary;
+  scroll-behavior: smooth;
+}
+
+.container {
+  max-width: 1200px;
+}
+
+p {
+  font-weight: $regular-weight;
+  letter-spacing: -0.36px;
+  margin-bottom: 28px;
+
+  @include media-breakpoint-up(lg) {
+    letter-spacing: -0.4px;
+    margin-bottom: 30px;
+  }
+
+  @include media-breakpoint-up(xl) {
+    margin-bottom: 35px;
+  }
+}
+
+.lead {
+  @include font-size($font-sizes30);
+  letter-spacing: -0.32px;
+
+  @include media-breakpoint-up(lg) {
+    letter-spacing: -0.6px;
+  }
+}
+
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+figure {
+  margin: 0 0 15px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+/****************************************************************************
+  Links
+ ***************************************************************************/
+a {
+  @include transition(all, 0.2s, ease, 0s);
+  color: inherit;
+  outline: none;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: inherit;
+  }
+
+  span {
+    @include transition(all, 0.2s, ease, 0s);
+  }
+}
+
+strong,
+b {
+  font-weight: $semi-bold-weight;
+}
+
+/* Code for Firefox */
+:-moz-selection {
+  background: $brand-color;
+  color: $white;
+}
+
+::selection {
+  background: $brand-color;
+  color: $white;
+}
+
+/****************************************************************************
+  Headings
+ ***************************************************************************/
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  /* color: $text-muted-color; */
+  font-weight: $medium-weight;
+}
+
+h1,
+.h1 {
+  @include font-size($font-sizes65);  
+  letter-spacing: -0.96px;
+
+  @include media-breakpoint-up(lg) {
+    letter-spacing: -2.04px;
+  }
+
+  @include media-breakpoint-up(xl) {
+    letter-spacing: -0.4px;
+  }
+}
+
+h2,
+.h2 {
+  @include font-size($font-sizes50);  
+  letter-spacing: -0.88px;
+  margin-bottom: 24px;
+
+  @include media-breakpoint-up(lg) {
+    letter-spacing: -1.2px;
+  }
+
+  @include media-breakpoint-up(xl) {
+    letter-spacing: -0.4px;
+  }
+}
+
+h3,
+.h3 {
+  @include font-size($font-sizes30);
+  letter-spacing: -1.2px;
+  margin-bottom: 20px;
+
+  @include media-breakpoint-up(lg) {
+    letter-spacing: -1.5px;
+  }
+
+  @include media-breakpoint-up(xl) {
+    letter-spacing: -0.4px;
+  }
+}
+
+h4,
+.h4 {
+  @include font-size($font-sizes28);
+  letter-spacing: -0.32px;
+  margin-bottom: 18px;
+
+  @include media-breakpoint-up(lg) {
+    letter-spacing: -1.35px;
+  }
+
+  @include media-breakpoint-up(xl) {
+    letter-spacing: -0.4px;
+  }
+}
+
+h5,
+.h5 {
+  @include font-size($font-sizes22);    
+  letter-spacing: -0.2px;
+  margin-bottom: 15px;
+
+  @include media-breakpoint-up(lg) {
+    letter-spacing: -0.4px;
+  }
+}
+
+h6,
+.h6 {  
+  @include font-size($font-sizes18);
+  letter-spacing: -0.2px;
+
+  @include media-breakpoint-up(xl) {
+    letter-spacing: -0.4px;
+  }
+}
+
+.container,
+.container-fluid,
+.row [class*='col-'] {
+  padding-left: 16px;
+  padding-right: 16px;
+
+  @include media-breakpoint-up(xl) {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+.row {
+  margin-left: -16px;
+  margin-right: -16px;
+
+  &.g-0 {
+    margin-left: 0;
+    margin-right: 0;
+
+    [class*='col-'] {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  @include media-breakpoint-up(xl) {
+    margin-left: -12px;
+    margin-right: -12px;
+  }
+}
+
+@include media-breakpoint-up(xxl) {
+  .container {
+    max-width: 1560px;
+  }
+}
+

@@ -1,23 +1,48 @@
-@import './dashboard';
-@import './edit-profile';
-@import './home-dashboard';
-@import './analytics';
-@import './rfp';
-@import './landing-section';
-@import './how-it-works';
-@import './features';
-@import './use-cases';
-@import './ai-in-action';
-@import './why-choose';
-@import './footer';
-@import './general';
-@import './register';
-@import './header';
-@import './login';
-@import './rfp-flow';
+//* This is the main application stylesheet. It should include or import all
+//* custom and vendor stylesheets.
 
-// mixins
-@import './mixins/mixins.scss';
+//****************************************************************************
+//  Include our own variables and the ones that override the Bootstrap variables
+//  Always include this file first
+//***************************************************************************/
+@import './base/variables';
 
-// lottie
-@import './animations/lottie.scss';
+//****************************************************************************
+//  Include a custom build of the Twitter Bootstrap SCSS files.
+//***************************************************************************/
+@import 'aos/dist/aos.css';
+@import 'bootstrap/scss/bootstrap';
+
+//****************************************************************************
+//  Include base styles
+//***************************************************************************/
+@import 'mixins/mixins';
+@import 'base/font-size';
+@import 'base/typography';
+
+//****************************************************************************
+//  Include our custom styles
+//***************************************************************************/
+@import 'include/header';
+@import 'include/footer';
+@import 'include/general';
+@import 'include/dashboard';
+@import 'include/edit-profile';
+@import 'include/home-dashboard';
+@import 'include/analytics';
+@import 'include/rfp';
+@import 'include/rfp-flow';
+@import 'include/landing-section';
+@import 'include/how-it-works';
+@import 'include/features';
+@import 'include/use-cases';
+@import 'include/ai-in-action';
+@import 'include/why-choose';
+@import 'include/register';
+@import 'include/login';
+
+//****************************************************************************
+//  Include animations and other utilities
+//***************************************************************************/
+@import 'animations/lottie';
+@import 'loader';
