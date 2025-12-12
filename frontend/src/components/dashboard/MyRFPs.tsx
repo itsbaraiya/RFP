@@ -13,12 +13,10 @@ import {
   FileText,
   Clock,
   CheckCircle2,
-  UploadCloud,
   Users,
   Trash2,
 } from "lucide-react";
 import api from "../../api/axios";
-import CreateRFPFlow from "../rfp/CreateRFPFlow";
 import Lottie from "lottie-react";
 import emptyAnimation from "../../assets/lottie/empty.json";
 
@@ -27,7 +25,6 @@ const MyRFPs: React.FC = () => {
   const [rfps, setRfps] = useState<any[]>([]);
   const [loadingRfps, setLoadingRfps] = useState(false);
 
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showCollaboratorModal, setShowCollaboratorModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -202,23 +199,9 @@ const MyRFPs: React.FC = () => {
     <div className="p-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="fw-semibold mb-1">My RFPs</h2>
+          <h2 className="fw-semibold mb-1">My RFPS / View RFPS</h2>
           <p className="text-muted small mb-0">Manage and collaborate on your uploaded RFPs</p>
         </div>
-
-        <Button
-          variant="primary"
-          className="d-flex align-items-center gap-2"
-          onClick={() => setShowUploadModal(true)}
-          style={{
-            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-            border: "none",
-            borderRadius: "10px",
-            padding: "10px 18px",
-          }}
-        >
-          <UploadCloud size={18} /> Create RFP
-        </Button>
       </div>
       {error && (
         <Alert
@@ -302,21 +285,6 @@ const MyRFPs: React.FC = () => {
         </div>
       )}
 
-      {/* Create RFP Modal */}
-      <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)} centered backdrop="static" size="xl">
-        <Modal.Header closeButton>
-          <Modal.Title>Create New RFP</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <CreateRFPFlow
-            onSuccess={async () => {
-              setShowUploadModal(false);
-              await fetchRFPs();
-              setToast({ message: "RFP uploaded successfully", variant: "success" });
-            }}
-          />
-        </Modal.Body>
-      </Modal>
 
       {/* Collaborators Modal */}
       <Modal show={showCollaboratorModal} onHide={() => setShowCollaboratorModal(false)} centered>

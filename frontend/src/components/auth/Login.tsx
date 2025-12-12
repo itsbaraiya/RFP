@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Container, Row, Col } from "react-bootstrap";
+import { FaUser, FaLock } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
 import Lottie from "lottie-react";
@@ -15,20 +18,23 @@ const Login: React.FC = () => {
 
   const particles = Array.from({ length: 30 });
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    const res = await api.post("/auth/login", { email, password });
-    login(res.data.token, res.data.user);
-    setShowSuccess(true);
-    setTimeout(() => {
-      navigate("/dashboard", { replace: true });
-    }, 1600);
-  } catch (err: any) {
-    setError(err.response?.data?.message || "Login failed");
-  }
-};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      login(res.data.token, res.data.user);
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 1600);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Login failed");
+    }
+  };
 
+  const handleGoogleSignIn = () => {    
+    console.log("Google sign-in clicked");
+  };
 
   return (
     <div className="login-container">
@@ -49,47 +55,70 @@ const Login: React.FC = () => {
 
       <div className="mini-robot">🤖</div>
 
-      <div className="form-side">
-        <div className="login-form">
-          <h2>Welcome Back</h2>
-          <p className="subtitle">Sign in to your RFP AI account</p>
+      <Container fluid className="h-100">
+        <Row className="h-100 g-0">
+          <Col xs={12} md={6} className="form-side d-flex align-items-center justify-content-center">
+            <div className="login-form">
+              <h2>Welcome</h2>
+              <p className="subtitle">Sign in to your RFP AI account</p>
 
-          {error && <div className="alert alert-danger">{error}</div>}
+              {error && <div className="alert alert-danger">{error}</div>}
 
-          {!showSuccess ? (
-            <form onSubmit={handleSubmit}>
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button type="submit">Login</button>
-            </form>
-          ) : (
-            <div className="lottie-success">
-              <Lottie animationData={successAnimation} loop={false} />
-              <p>Login Successful!</p>
+              {!showSuccess ? (
+                <>
+                  <form onSubmit={handleSubmit}>
+                    <div className="input-wrapper">
+                      <FaUser className="input-icon" />
+                      <input
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="input-wrapper">
+                      <FaLock className="input-icon" />
+                      <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <button type="submit">Login</button>
+                  </form>
+
+                  <div className="divider">
+                    <span className="divider-line"></span>
+                    <span className="divider-text">or</span>
+                    <span className="divider-line"></span>
+                  </div>
+
+                  <button type="button" className="google-signin-btn" onClick={handleGoogleSignIn}>
+                    <FcGoogle className="google-icon" />
+                    Sign up with Google
+                  </button>
+                </>
+              ) : (
+                <div className="lottie-success">
+                  <Lottie animationData={successAnimation} loop={false} />
+                  <p>Login Successful!</p>
+                </div>
+              )}
+
+              <p>
+                Don't have an account? <a href="/register">Sign Up</a>
+              </p>
             </div>
-          )}
+          </Col>
 
-          <p>
-            Don’t have an account? <a href="/register">Sign Up</a>
-          </p>
-        </div>
-      </div>
-
-      <div className="image-side">
-        <img src="/Images/register/login.jpeg" alt="RFP AI Illustration" />
-      </div>
+          <Col xs={12} md={6} className="image-side d-none d-md-block">
+            <img src="/Images/register/login.jpeg" alt="RFP AI Illustration" />
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 };
