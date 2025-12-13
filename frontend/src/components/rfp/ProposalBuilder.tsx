@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { Row, Col, Button, Form, Alert, Spinner, Modal } from "react-bootstrap";
-import { CheckCircle2, Send, Paperclip, Download, Eye, Upload, Sparkles, X } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { CheckCircle2, Send, Paperclip, Download, Eye, Upload, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import RFPUpload from "../RFPUpload";
 import jsPDF from "jspdf";
 
-const ProposalBuilder: React.FC = () => {
-  const { user } = useAuth();
+const ProposalBuilder: React.FC = () => {  
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [creationType, setCreationType] = useState<"upload" | "ai" | "">("");
@@ -16,12 +14,11 @@ const ProposalBuilder: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [formData, setFormData] = useState({
-    // Step 1: Basic Information
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [formData, setFormData] = useState({    
     title: "",
     description: "",
     category: "",
-    // Step 2: AI Prompt (if AI generation chosen)
     aiPrompt: "",
   });
   const [aiMessages, setAiMessages] = useState([
@@ -184,107 +181,78 @@ const ProposalBuilder: React.FC = () => {
   };
 
   const generatePreview = () => {
-    return {
-      title: formData.title || "Your RFP Title",
-      introduction: formData.description || "Your RFP description will appear here...",
-      goals: formData.description || "Project goals and objectives will be displayed here.",
-    };
+  return {
+    title: formData.title || "Your RFP Title",
+    category: formData.category || "Not specified",
+    description: formData.description || "Description will appear here...",
+    introduction: "Introduction will appear here...",
+    aiPrompt:
+      creationType === "ai"
+        ? formData.aiPrompt || "AI requirements will appear here..."
+        : null,
+    uploadStatus:
+      creationType === "upload"
+        ? fileData
+          ? "Document uploaded and ready for analysis."
+          : "No document uploaded."
+        : null,
   };
+};
 
-  const preview = generatePreview();
-
-  const generateFullPreviewContent = () => {
-    let content = `REQUEST FOR PROPOSAL\n\n`;
-    content += `Title: ${formData.title || "Not specified"}\n\n`;
-    content += `Category: ${formData.category || "Not specified"}\n\n`;
-    content += `Description:\n${formData.description || "Not specified"}\n\n`;
-    
-    if (creationType === "ai" && formData.aiPrompt) {
-      content += `AI Generation Requirements:\n${formData.aiPrompt}\n\n`;
-    }
-    
-    if (creationType === "upload" && fileData) {
-      content += `Document: Uploaded file ready for analysis\n\n`;
-    }
-    
-    content += `Generated on: ${new Date().toLocaleDateString()}\n`;
-    return content;
-  };
+  const preview = generatePreview();  
 
   const handleFullPreview = () => {
-    setShowPreviewModal(true);
-  };
-
-  const handleDownloadPDF = () => {
+    if (!preview) {
+      setError("No data available for preview.");
+      return;
+    }
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      const margin = 20;
-      const maxWidth = pageWidth - (margin * 2);
-      let y = margin;
+      let y = 20;
 
       // Title
       doc.setFontSize(18);
-      doc.setFont(undefined, "bold");
-      const title = formData.title || "Request for Proposal";
-      doc.text(title, pageWidth / 2, y, { align: "center" });
+      doc.setFont("helvetica", "bold");
+      doc.text(formData.title || "Request for Proposal", pageWidth / 2, y, { align: "center" });
       y += 15;
 
-      // Category and Date
-      doc.setFontSize(10);
-      doc.setFont(undefined, "normal");
-      doc.setTextColor(100, 100, 100);
-      if (formData.category) {
-        doc.text(`Category: ${formData.category}`, margin, y);
-        y += 7;
-      }
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
+      // Category & Date
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      if (formData.category) doc.text(`Category: ${formData.category}`, 20, y);
+      y += 7;
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, y);
       y += 10;
 
-      // Description Section
+      // Description
       if (formData.description) {
         doc.setFontSize(14);
-        doc.setFont(undefined, "bold");
-        doc.setTextColor(0, 0, 0);
-        doc.text("Description", margin, y);
+        doc.setFont("helvetica", "bold");
+        doc.text("Description:", 20, y);
         y += 8;
-
         doc.setFontSize(11);
-        doc.setFont(undefined, "normal");
-        const descLines = doc.splitTextToSize(formData.description, maxWidth);
-        descLines.forEach((line: string) => {
-          if (y > pageHeight - margin) {
-            doc.addPage();
-            y = margin;
-          }
-          doc.text(line, margin, y);
+        doc.setFont("helvetica", "normal");
+        doc.splitTextToSize(formData.description, pageWidth - 40).forEach((line: string) => {
+          if (y > 280) { doc.addPage(); y = 20; }
+          doc.text(line, 20, y);
           y += 6;
         });
         y += 5;
       }
 
-      // AI Prompt Section
+      // AI Prompt
       if (creationType === "ai" && formData.aiPrompt) {
-        if (y > pageHeight - 30) {
-          doc.addPage();
-          y = margin;
-        }
-
+        if (y > 280) { doc.addPage(); y = 20; }
         doc.setFontSize(14);
-        doc.setFont(undefined, "bold");
-        doc.text("AI Generation Requirements", margin, y);
+        doc.setFont("helvetica", "bold");
+        doc.text("AI Generation Requirements:", 20, y);
         y += 8;
-
         doc.setFontSize(11);
-        doc.setFont(undefined, "normal");
-        const promptLines = doc.splitTextToSize(formData.aiPrompt, maxWidth);
-        promptLines.forEach((line: string) => {
-          if (y > pageHeight - margin) {
-            doc.addPage();
-            y = margin;
-          }
-          doc.text(line, margin, y);
+        doc.setFont("helvetica", "normal");
+        doc.splitTextToSize(formData.aiPrompt, pageWidth - 40).forEach((line: string) => {
+          if (y > 280) { doc.addPage(); y = 20; }
+          doc.text(line, 20, y);
           y += 6;
         });
         y += 5;
@@ -292,19 +260,92 @@ const ProposalBuilder: React.FC = () => {
 
       // Upload Status
       if (creationType === "upload" && fileData) {
-        if (y > pageHeight - 30) {
-          doc.addPage();
-          y = margin;
-        }
-
+        if (y > 280) { doc.addPage(); y = 20; }
         doc.setFontSize(14);
-        doc.setFont(undefined, "bold");
-        doc.text("Document Status", margin, y);
+        doc.setFont("helvetica", "bold");
+        doc.text("Document Status:", 20, y);
         y += 8;
-
         doc.setFontSize(11);
-        doc.setFont(undefined, "normal");
-        doc.text("File uploaded and ready for analysis.", margin, y);
+        doc.setFont("helvetica", "normal");
+        doc.text("File uploaded and ready for analysis.", 20, y);
+      }
+
+      const blobUrl = doc.output("datauristring");
+      setPdfPreviewUrl(blobUrl);
+
+      setShowPreviewModal(true);
+    } catch {
+      setError("Failed to generate preview.");
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (!preview) {
+      setError("No data available for PDF download.");
+      return;
+    }
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      let y = 20;
+
+      // Title
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text(formData.title || "Request for Proposal", pageWidth / 2, y, { align: "center" });
+      y += 15;
+
+      // Category & Date
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      if (formData.category) doc.text(`Category: ${formData.category}`, 20, y);
+      y += 7;
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, y);
+      y += 10;
+
+      // Description
+      if (formData.description) {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Description:", 20, y);
+        y += 8;
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.splitTextToSize(formData.description, pageWidth - 40).forEach((line: string) => {
+          if (y > 280) { doc.addPage(); y = 20; }
+          doc.text(line, 20, y);
+          y += 6;
+        });
+        y += 5;
+      }
+
+      // AI Prompt
+      if (creationType === "ai" && formData.aiPrompt) {
+        if (y > 280) { doc.addPage(); y = 20; }
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("AI Generation Requirements:", 20, y);
+        y += 8;
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.splitTextToSize(formData.aiPrompt, pageWidth - 40).forEach((line: string) => {
+          if (y > 280) { doc.addPage(); y = 20; }
+          doc.text(line, 20, y);
+          y += 6;
+        });
+        y += 5;
+      }
+
+      // Upload Status
+      if (creationType === "upload" && fileData) {
+        if (y > 280) { doc.addPage(); y = 20; }
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Document Status:", 20, y);
+        y += 8;
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.text("File uploaded and ready for analysis.", 20, y);
       }
 
       const fileName = `${(formData.title || "RFP").replace(/[^a-z0-9]/gi, "_")}-${Date.now()}.pdf`;
@@ -317,13 +358,11 @@ const ProposalBuilder: React.FC = () => {
 
   return (
     <div className="proposal-builder">
-      <Row className="g-0 h-100">
-        {/* Left Pane - Proposal Builder */}
+      <Row className="g-0 h-100">    
         <Col xs={12} lg={9} className="proposal-builder__left">
           <div className="proposal-builder__content">
-            {/* Progress Steps */}
             <div className="proposal-progress">
-              {steps.map((step, index) => (
+              {steps.map((step) => (
                 <div
                   key={step.id}
                   className={`proposal-step ${currentStep === step.id ? "active" : ""} ${
@@ -469,7 +508,7 @@ const ProposalBuilder: React.FC = () => {
                         onChange={(e) => handleInputChange("aiPrompt", e.target.value)}
                         placeholder="Example: I need a proposal for redesigning our CRM system with modern UI/UX, cloud-based architecture, mobile app support, and integration with existing ERP systems..."
                       />
-                      <Form.Text className="text-muted">
+                      <Form.Text>
                         Be as detailed as possible. The AI will use this to generate your RFP.
                       </Form.Text>
                     </Form.Group>
@@ -566,8 +605,23 @@ const ProposalBuilder: React.FC = () => {
                   <p>{preview.introduction}</p>
                 </div>
                 <div className="preview-section">
-                  <h5>2. Project Goals and Objectives</h5>
-                  <p>{preview.goals}</p>
+                  <h5>2. Description</h5>
+                    <p>{preview.description}</p>
+
+                    {preview.aiPrompt && (
+                      <>
+                        <h5>3. AI Generation Requirements</h5>
+                        <p>{preview.aiPrompt}</p>
+                      </>
+                    )}
+
+                    {preview.uploadStatus && (
+                      <>
+                        <h5>3. Document Status</h5>
+                        <p>{preview.uploadStatus}</p>
+                      </>
+                    )}
+
                 </div>
               </div>
               <div className="proposal-preview__actions">
@@ -619,57 +673,21 @@ const ProposalBuilder: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Full Preview Modal */}
-      <Modal 
-        show={showPreviewModal} 
-        onHide={() => setShowPreviewModal(false)} 
-        size="lg" 
-        centered
-        className="preview-modal"
-      >
-        <Modal.Header className="preview-modal__header">
-          <Modal.Title>Full RFP Preview</Modal.Title>
-          <Button 
-            variant="link" 
-            className="preview-modal__close"
-            onClick={() => setShowPreviewModal(false)}
-          >
-            <X size={20} />
-          </Button>
+      {/* PDF Preview Modal */}
+      <Modal show={showPreviewModal} onHide={() => setShowPreviewModal(false)} size="xl">
+        <Modal.Header closeButton>
+          <Modal.Title>Proposal PDF Preview</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="preview-modal__body">
-          <div className="full-preview-content">
-            <h2 className="preview-title">{formData.title || "Untitled RFP"}</h2>
-            <div className="preview-meta">
-              <p><strong>Category:</strong> {formData.category || "Not specified"}</p>
-              <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
-            </div>
-            <div className="preview-section-full">
-              <h3>Description</h3>
-              <p>{formData.description || "No description provided."}</p>
-            </div>
-            {creationType === "ai" && formData.aiPrompt && (
-              <div className="preview-section-full">
-                <h3>AI Generation Requirements</h3>
-                <p>{formData.aiPrompt}</p>
-              </div>
-            )}
-            {creationType === "upload" && fileData && (
-              <div className="preview-section-full">
-                <h3>Document</h3>
-                <p>File uploaded and ready for analysis.</p>
-              </div>
-            )}
-          </div>
+        <Modal.Body>
+          {pdfPreviewUrl ? (
+            <iframe src={pdfPreviewUrl} width="100%" height="600px" style={{ border: "none" }} />
+          ) : (
+            <Spinner animation="border" />
+          )}
         </Modal.Body>
-        <Modal.Footer className="preview-modal__footer">
-          <Button variant="outline-secondary" onClick={() => setShowPreviewModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleDownloadPDF}>
-            <Download size={16} className="me-2" />
-            Download PDF
-          </Button>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowPreviewModal(false)}>Close</Button>
+          <Button variant="success" onClick={handleDownloadPDF}>Download PDF</Button>
         </Modal.Footer>
       </Modal>
     </div>

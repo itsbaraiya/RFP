@@ -2,9 +2,11 @@
 // Dashboard Home - Customer Dashboard
 // 
 
-import { useState, useEffect } from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
-import { useAuth, getAvatarURL } from "../../context/AuthContext";
+import { useState } from "react";
+import { Row, Col, Button } from "react-bootstrap";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom"
+
 import { 
   DollarSign, 
   FileText, 
@@ -14,12 +16,9 @@ import {
   Upload, 
   Eye,
   Edit,
-  MessageCircle,
-  Clock
+  MessageCircle
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -33,47 +32,54 @@ import {
 import Loader from "../common/Loader";
 
 const Home = () => {
-  const { user, initialized } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { user, initialized } = useAuth();  
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
 
   if (!initialized) return <Loader />;
   if (!user) return <div className="no-user">No user found. Please log in.</div>;
 
   // Mock data - replace with actual API calls
   const atAGlanceData = [
-    {
-      title: "AI Credits",
-      value: "5,200",
-      description: "Your current AI credit balance",
-      icon: DollarSign,
-      action: "Purchase More Credits",
-      color: "#2563eb",
-    },
-    {
-      title: "Draft Proposals",
-      value: "12",
-      description: "Proposals currently in draft",
-      icon: FileText,
-      action: "View Details",
-      color: "#3b82f6",
-    },
-    {
-      title: "Submitted Proposals",
-      value: "8",
-      description: "Proposals submitted for review",
-      icon: Send,
-      action: "View Details",
-      color: "#8b5cf6",
-    },
-    {
-      title: "Approved Proposals",
-      value: "5",
-      description: "Proposals approved and active",
-      icon: CheckCircle2,
-      action: "View Details",
-      color: "#10b981",
-    },
-  ];
+  {
+    title: "AI Credits",
+    value: "5,200",
+    description: "Your current AI credit balance",
+    icon: DollarSign,
+    action: "Purchase More Credits",
+    actionKey: "credits",
+    color: "#2563eb",
+  },
+  {
+    title: "Draft Proposals",
+    value: "12",
+    description: "Proposals currently in draft",
+    icon: FileText,
+    action: "View Drafts",
+    actionKey: "draft",
+    color: "#3b82f6",
+  },
+  {
+    title: "Submitted Proposals",
+    value: "8",
+    description: "Proposals submitted for review",
+    icon: Send,
+    action: "View Submitted",
+    actionKey: "submitted",
+    color: "#8b5cf6",
+  },
+  {
+    title: "Approved Proposals",
+    value: "5",
+    description: "Proposals approved and active",
+    icon: CheckCircle2,
+    action: "View Approved",
+    actionKey: "approved",
+    color: "#10b981",
+  },
+];
+
 
   const creditUsageData = [
     { month: "Jan", credits: 45 },
@@ -103,7 +109,44 @@ const Home = () => {
     { title: "Budget Review Q4", status: "Draft", lastUpdated: "2024-01-13", actions: "" },
     { title: "Website Redesign", status: "Approved", lastUpdated: "2024-01-12", actions: "" },
     { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
+    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
+    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
+    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
+    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
+    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
   ];
+
+  const totalProposals = recentProposals.length;
+  const totalPages = Math.ceil(totalProposals / ITEMS_PER_PAGE);
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+
+  const paginatedProposals = recentProposals.slice(startIndex, endIndex);
+
+  const handleGlanceAction = (key: string) => {
+  switch (key) {
+    case "credits":
+      navigate("/dashboard?tab=credits");
+      break;
+
+    case "draft":
+      navigate("/dashboard?tab=myrfps&status=Draft");
+      break;
+
+    case "submitted":
+      navigate("/dashboard?tab=myrfps&status=Submitted");
+      break;
+
+    case "approved":
+      navigate("/dashboard?tab=myrfps&status=Approved");
+      break;
+
+    default:
+      break;
+  }
+};
+
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -146,7 +189,12 @@ const Home = () => {
                       <p className="glance-card__description">{card.description}</p>
                     </div>
                   </div>
-                  <button className="glance-card__action">{card.action}</button>
+                  <button
+                    className="glance-card__action"
+                    onClick={() => handleGlanceAction(card.actionKey)}
+                  >
+                    {card.action}
+                  </button>
                 </div>
               </Col>
             );
@@ -272,7 +320,7 @@ const Home = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentProposals.map((proposal, index) => (
+                    {paginatedProposals.map((proposal, index) => (
                       <tr key={index}>
                         <td>{proposal.title}</td>
                         <td>
@@ -288,10 +336,26 @@ const Home = () => {
                 </table>
               </div>
               <div className="proposals-pagination">
-                <span>1-5 of 10 proposals</span>
+                <span>
+                  {startIndex + 1}-
+                  {Math.min(endIndex, totalProposals)} of {totalProposals} proposals
+                </span>
                 <div className="pagination-controls">
-                  <button className="pagination-btn">Previous</button>
-                  <button className="pagination-btn">Next</button>
+                  <button
+                    className="pagination-btn"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    className="pagination-btn"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             </div>

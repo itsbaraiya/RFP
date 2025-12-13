@@ -200,7 +200,7 @@ const MyRFPs: React.FC = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-semibold mb-1">My RFPS / View RFPS</h2>
-          <p className="text-muted small mb-0">Manage and collaborate on your uploaded RFPs</p>
+          <p className="dashboard-subtitle">Manage and collaborate on your uploaded RFPs</p>
         </div>
       </div>
       {error && (
@@ -227,10 +227,7 @@ const MyRFPs: React.FC = () => {
         <div className="row g-4">
           {rfps.map((rfp) => (
             <div key={rfp.id} className="col-md-6 col-lg-4">
-              <div
-                className="shadow-sm p-4 bg-white rounded-4 h-100"
-                style={{ border: "1px solid #e5e7eb", transition: "all 0.3s ease" }}
-              >
+              <div className="my-proposal__card">
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <div className="d-flex align-items-center gap-2">
                     <FileText size={22} color="#2563eb" />
@@ -246,17 +243,17 @@ const MyRFPs: React.FC = () => {
                   </Badge>
                 </div>
 
-                <div className="small text-muted mb-3">
+                <div className="small mb-3">
                   <Clock size={14} className="me-1" />
                   {new Date(rfp.createdAt).toLocaleString()}
                 </div>
 
                 <div className="d-flex flex-wrap justify-content-between gap-2 mt-3">
-                  <Button variant="outline-primary" size="sm" onClick={() => handleViewFile(rfp)}>
+                  <Button variant="primary" size="sm" onClick={() => handleViewFile(rfp)}>
                     View File
                   </Button>
 
-                  <Button variant="outline-dark" size="sm" onClick={() => handleCollaboratorClick(rfp)}>
+                  <Button variant="dark" size="sm" onClick={() => handleCollaboratorClick(rfp)}>
                     <Users size={14} className="me-1" /> Collaborators
                   </Button>
 
@@ -267,7 +264,7 @@ const MyRFPs: React.FC = () => {
                   )}
 
                   <Button
-                    variant="outline-danger"
+                    variant="danger"
                     size="sm"
                     onClick={() => confirmDeleteRFP(rfp)}
                     disabled={deletingId === rfp.id}

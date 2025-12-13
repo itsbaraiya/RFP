@@ -1,5 +1,5 @@
 // //
-// // Dashboard.tsx
+// Dashboard.tsx
 // //
 
 import { useState, useEffect } from "react";
@@ -13,78 +13,76 @@ import ProposalBuilder from "../components/rfp/ProposalBuilder";
 import MyRFPs from "../components/dashboard/MyRFPs";
 import { useAuth, getAvatarURL } from "../context/AuthContext";
 
-
 import {
   LayoutDashboard,
   Users,
   Grid,
   Search,
-  ChevronDown,
   Settings,
   FileText,
 } from "lucide-react";
 
+type MenuItem = {
+  key: string;
+  label: string;
+  icon: React.FC<any>;
+};
+
+type MenuConfig = {
+  ADMIN: MenuItem[];
+  CUSTOMER: MenuItem[];
+  COLLABORATOR: MenuItem[];
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
 
-useEffect(() => {
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    setUser(JSON.parse(storedUser));
-  }
-}, []);
+  const { logout } = useAuth();
 
-
-const { logout } = useAuth();
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
 
   const handleLogout = () => {
     logout();
-};
-  
-  const menuConfig: Record<string, Array<{ key: string; label: string; icon: any }>> = {
+  };
+
+  const menuConfig: MenuConfig = {
     ADMIN: [
-      { key: "dashboard", label: "Admin Layout Dashboard", icon: LayoutDashboard },
-      { key: "user", label: "User Management", icon: Users },
-      { key: "aikit", label: "Proposal Builder", icon: FileText },
-      { key: "collaborators", label: "Collaborator View", icon: Users },
+      { key: "overview", label: "Overview", icon: LayoutDashboard },
+      { key: "users", label: "Users & Roles", icon: Users },
+      { key: "rfps", label: "All RFPs", icon: FileText },
+      { key: "analytics", label: "Analytics", icon: Grid },
+      { key: "credits", label: "Plans & Billing", icon: Settings },
       { key: "profile", label: "Account Settings", icon: Settings },
     ],
     CUSTOMER: [
-      { key: "dashboard", label: "Customer Dashboard", icon: LayoutDashboard },
-      { key: "myrfps", label: "Admin Dashboard", icon: LayoutDashboard },
-      { key: "aikit", label: "Proposal Builder", icon: FileText },
-      { key: "collaborators", label: "Collaborator View", icon: Users },
+      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { key: "myrfps", label: "My RFPs", icon: FileText },
+      { key: "aikit", label: "Proposal Builder", icon: Grid },
+      { key: "library", label: "Content Library", icon: Users },
+      { key: "collaborators", label: "Team & Collaborators", icon: Users },
+      { key: "credits", label: "Credits & Usage", icon: Settings },
       { key: "profile", label: "Account Settings", icon: Settings },
-    ],    
+    ],
     COLLABORATOR: [
-      { key: "dashboard", label: "Customer Dashboard", icon: LayoutDashboard },
-      { key: "myrfps", label: "Admin Dashboard", icon: LayoutDashboard },
-      { key: "aikit", label: "Proposal Builder", icon: FileText },
-      { key: "collaborators", label: "Collaborator View", icon: Users },
+      { key: "assigned", label: "Assigned RFPs", icon: LayoutDashboard },
+      { key: "builder", label: "Proposal Builder", icon: FileText },
+      { key: "reviews", label: "Reviews & Comments", icon: Users },
+      { key: "library", label: "Content Library", icon: Grid },
       { key: "profile", label: "Account Settings", icon: Settings },
     ],
   };
 
-  const topNavLinks = [
-    { key: "dashboard", label: user?.role === "ADMIN" ? "Admin Layout Dashboard" : "Customer Dashboard" },
-    { key: "myrfps", label: user?.role === "ADMIN" ? "Customer Layout Dashboard" : "Admin Dashboard" },
-    { key: "aikit", label: "Proposal Builder" },
-    { key: "collaborators", label: "Collaborator View" },
-    { key: "profile", label: "Account Settings" },
-  ];
-
-  const currentMenu = menuConfig[user?.role] || [];
+  const currentMenu = user ? menuConfig[user.role as keyof MenuConfig] || [] : [];
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        if (user?.role === "ADMIN") {
-          return <UserManagement />;
-        }
-        return <DashboardHome />;
+        return user?.role === "ADMIN" ? <UserManagement /> : <DashboardHome />;
       case "user":
         return user?.role === "ADMIN" ? <UserManagement /> : <p>Access Denied</p>;
       case "myrfps":
@@ -117,53 +115,40 @@ const { logout } = useAuth();
             <span className="logo-icon">🔥</span>
             <span className="logo-text">RFP AI</span>
           </div>
-          <nav className="dashboard__top-nav">
-            {topNavLinks.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`dashboard__nav-link ${activeTab === key ? "active" : ""}`}
-                onClick={() => setActiveTab(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
         </div>
         <div className="dashboard__header-right">
           <div className="dashboard__search">
             <Search size={18} />
-            <input 
-              type="text" 
-              placeholder={user?.role === "ADMIN" ? "Search users or proposals..." : "Search proposals..."}
+            <input
+              type="text"
+              placeholder={
+                user?.role === "ADMIN"
+                  ? "Search users or proposals..."
+                  : "Search proposals..."
+              }
             />
           </div>
           <div className="dashboard__user-profile">
-            <img 
-              src={user?.avatar || getAvatarURL()} 
-              alt={user?.name || "User"} 
+            <img
+              src={user?.avatar || getAvatarURL()}
+              alt={user?.name || "User"}
               className="profile-avatar"
             />
-            <ChevronDown size={16} />
           </div>
         </div>
       </header>
 
       <div className="dashboard__body">
         <aside className="sidebar">
-          <div className="sidebar__section">            
-          </div>
-
           <nav className="sidebar__nav">
             <ul>
               {currentMenu.map(({ key, label, icon: Icon }) => (
                 <li
                   key={key}
-                  className={`sidebar__item ${
-                    activeTab === key ? "active" : ""
-                  }`}
+                  className={`sidebar__item ${activeTab === key ? "active" : ""}`}
                   onClick={() => setActiveTab(key)}
                 >
-                  <Icon size={18} className="sidebar__icon" /> 
+                  <Icon size={18} className="sidebar__icon" />
                   <span>{label}</span>
                 </li>
               ))}
@@ -171,27 +156,16 @@ const { logout } = useAuth();
           </nav>
 
           {user && (
-            <div className="sidebar__user-profile">
-              <img 
-                src={user?.avatar || getAvatarURL()} 
-                alt={user?.name || "User"} 
-                className="sidebar__avatar"
-              />
-              <div className="sidebar__user-info">
-                <div className="sidebar__user-name">{user?.name || "User"}</div>
-                <div className="sidebar__user-email">{user?.email || ""}</div>
-              </div>
-            </div>
-          )}
-
-          {user && (
             <div className="sidebar__footer">
-              <button className="btn btn-outline-danger w-100" onClick={handleLogout}>
+              <button
+                className="btn btn-outline-danger w-100"
+                onClick={handleLogout}
+              >
                 Sign Out
               </button>
             </div>
           )}
-        </aside>      
+        </aside>
         <main className="dashboard__main">{renderContent()}</main>
       </div>
     </div>

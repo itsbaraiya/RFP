@@ -251,7 +251,7 @@ const UserManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.slice(0, 5).map((user, index) => (
+                {filteredUsers.slice(0, 5).map((user) => (
                   <tr key={user.id}>
                     <td>
                       <div className="admin-table__user">
