@@ -60,7 +60,7 @@ const Dashboard = () => {
 
   const menuConfig: MenuConfig = {
     ADMIN: [
-      { key: "overview", label: "Overview", icon: LayoutDashboard },
+      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
       { key: "users", label: "Users & Roles", icon: Users },
       { key: "rfps", label: "All RFPs", icon: FileText },
       { key: "analytics", label: "Analytics", icon: Grid },
