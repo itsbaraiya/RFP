@@ -39,6 +39,7 @@ app.use(
 const allowedOrigin = process.env.Frontend_URL;
 
 app.use(
+  "/api/uploads",
   cors({
     origin: allowedOrigin,
     credentials: true,
