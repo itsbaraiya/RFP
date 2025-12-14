@@ -11,6 +11,10 @@ import Analytics from "../components/dashboard/Analytics";
 import CreditPlans from "../components/admin/CreditPlans";
 import ProposalBuilder from "../components/rfp/ProposalBuilder";
 import MyRFPs from "../components/dashboard/MyRFPs";
+import Credits from "../components/dashboard/Credits";
+import Collaborators from "../components/dashboard/Collaborators";
+import Library from "../components/dashboard/Library";
+
 import { useAuth, getAvatarURL } from "../context/AuthContext";
 
 import {
@@ -41,6 +45,10 @@ const Dashboard = () => {
 
   const { logout } = useAuth();
 
+  const getMainClass = () => {
+    return `dashboard__main dashboard__main--${activeTab}`;
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
@@ -62,7 +70,7 @@ const Dashboard = () => {
     CUSTOMER: [
       { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
       { key: "myrfps", label: "My RFPs", icon: FileText },
-      { key: "aikit", label: "Proposal Builder", icon: Grid },
+      { key: "proposalbuilder", label: "Proposal Builder", icon: Grid },
       { key: "library", label: "Content Library", icon: Users },
       { key: "collaborators", label: "Team & Collaborators", icon: Users },
       { key: "credits", label: "Credits & Usage", icon: Settings },
@@ -90,10 +98,12 @@ const Dashboard = () => {
       case "proposal":
         return <h2>Manage Proposals</h2>;
       case "collaborators":
-        return <h2>Collaborator Management</h2>;
+        return <Collaborators />;
+      case "library":
+        return <Library />;
       case "credits":
-        return <h2>Credits & Billing</h2>;
-      case "aikit":
+        return <Credits />; 
+      case "proposalbuilder":
         return <ProposalBuilder />;
       case "analytics":
         return <Analytics />;
@@ -166,7 +176,9 @@ const Dashboard = () => {
             </div>
           )}
         </aside>
-        <main className="dashboard__main">{renderContent()}</main>
+        <main className={getMainClass()}>
+          {renderContent()}
+        </main>
       </div>
     </div>
   );

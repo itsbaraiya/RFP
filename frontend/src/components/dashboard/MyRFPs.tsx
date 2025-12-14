@@ -167,7 +167,7 @@ const MyRFPs: React.FC = () => {
 
   // ---------------- Analysis (fixed) ----------------
   const handleViewAnalysis = async (rfp: any) => {
-    setSelectedRFP(rfp); // show title immediately
+    setSelectedRFP(rfp);
     setAnalysisQuestions([]);
     setAnalysisSummary("");
     try {
@@ -196,12 +196,15 @@ const MyRFPs: React.FC = () => {
 
 
   return (
-    <div className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="fw-semibold mb-1">My RFPS / View RFPS</h2>
-          <p className="dashboard-subtitle">Manage and collaborate on your uploaded RFPs</p>
+    <div className="myrfp-list">
+      <div className="section-header">
+        <div className="section-header__title">
+          <FileText size={40} />
+          <h1>My RFPs</h1>
         </div>
+        <p className="section-header__subtitle">
+          Track, manage, and revisit your submitted proposals.
+        </p>
       </div>
       {error && (
         <Alert

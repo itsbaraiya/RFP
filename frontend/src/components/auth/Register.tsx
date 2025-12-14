@@ -63,6 +63,7 @@ const Register: React.FC = () => {
           <Col xs={12} md={6} className="form-side d-flex align-items-center justify-content-center">
             <div className="register-form">
               <h2>Sign Up</h2>
+              <p className="subtitle">Sign up to your RFP AI account</p>
               {error && <div className="alert alert-danger">{error}</div>}
 
               <form onSubmit={handleSubmit}>
@@ -110,7 +111,7 @@ const Register: React.FC = () => {
                 Sign up with Google
               </button>
 
-              <p>Already have an account? <a href="/login">Login</a></p>
+              <p className="already-have__account">Already have an account? <a href="/login">Login</a></p>
             </div>
           </Col>
 

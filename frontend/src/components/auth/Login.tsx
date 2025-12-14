@@ -32,8 +32,12 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {    
+  const handleGoogleSignIn = () => {
     console.log("Google sign-in clicked");
+  };
+
+  const handleForgotPassword = () => {
+    navigate("/forgot-password");
   };
 
   return (
@@ -87,6 +91,14 @@ const Login: React.FC = () => {
                         required
                       />
                     </div>
+
+                    {/* Forgot Password Link */}
+                    <div className="forgot-password">
+                      <a onClick={handleForgotPassword} aria-label="forget-password" title="forget-password">
+                        Forgot Password?
+                      </a>
+                    </div>
+
                     <button type="submit">Login</button>
                   </form>
 
@@ -100,6 +112,17 @@ const Login: React.FC = () => {
                     <FcGoogle className="google-icon" />
                     Sign up with Google
                   </button>
+
+                  <p className="tos-privacy">
+                    By clicking 'Submit' or 'Sign up with Google' you agree to our{" "}
+                    <a href="/terms-of-service" target="_blank" rel="noopener noreferrer">
+                      Terms of Service
+                    </a>{" "}
+                    and acknowledge that you have read and understand our{" "}
+                    <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">
+                      Privacy Policy
+                    </a>.
+                  </p>
                 </>
               ) : (
                 <div className="lottie-success">
@@ -108,7 +131,7 @@ const Login: React.FC = () => {
                 </div>
               )}
 
-              <p>
+              <p className="signup-paragraph">
                 Don't have an account? <a href="/register">Sign Up</a>
               </p>
             </div>

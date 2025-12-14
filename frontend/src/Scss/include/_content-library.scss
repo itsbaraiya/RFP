@@ -1,0 +1,58 @@
+.content-library {
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #1f1f2e;
+    border-radius: 12px;
+
+    svg {
+      color: #6366f1;
+      min-width: 24px;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+  }
+
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .library-card {
+    background: #1f1f2e;
+    border-radius: 12px;
+    padding: 16px;
+
+    h4 {
+      margin-bottom: 6px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+  }
+}

@@ -70,22 +70,25 @@ $input-border: rgba(0,255,255,0.3);
     .login-form {
       width: 100%;
       max-width: 420px;
-      padding: 3rem;
+      padding: 30px;
       border-radius: 20px;
       background: $form-bg;
       backdrop-filter: blur(15px);
       box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+      font-size: 16px;
+      line-height: 26px;
 
       h2 {
         text-align: center;
         color: $primary-color;
-        margin-bottom: 1rem;
+        margin-bottom: 10px;        
       }
 
       .subtitle {
         text-align: center;
         color: #ccc;
-        margin-bottom: 2rem;
+        margin-bottom: 16px;
+        margin-top: 0;
       }
 
       .divider {
@@ -120,8 +123,7 @@ $input-border: rgba(0,255,255,0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
+        gap: 0.5rem;        
 
         .google-icon {
           font-size: 1.25rem;
@@ -222,4 +224,24 @@ $input-border: rgba(0,255,255,0.3);
       object-fit: cover;
     }
   }
+}
+
+.forgot-password a {
+  color: $primary-color !important;
+  cursor: pointer;
+}
+
+.forgot-password a,
+.tos-privacy  {
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.tos-privacy {
+  margin-bottom: 20px;
+}
+
+.signup-paragraph,
+.already-have__account {
+  margin-bottom: 0;
 }

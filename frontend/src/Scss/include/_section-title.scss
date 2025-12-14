@@ -1,0 +1,26 @@
+.section-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $divider-color;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    h1 {
+      font-weight: $semi-bold-weight;
+      margin: 0;
+    }
+
+    svg {
+      color: $primary-color;
+    }
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: $brand-color-gray-medium;
+    margin-top: 4px;
+  }
+}

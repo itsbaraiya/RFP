@@ -1,0 +1,181 @@
+.credits-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  /* TOP GRID */
+  &__top {
+    display: grid;
+    grid-template-columns: 1.2fr repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  /* SHARED CARD */
+  &__card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 30px 18px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  }
+
+  /* BALANCE CARD */
+  &__balance {
+    @extend .credits-page__card;
+
+    &-label {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    &-amount {
+      font-size: 34px;
+      margin: 8px 0;
+    }
+
+    &-sub {
+      font-size: 13px;
+      color: #6b7280;
+    }
+  }
+
+  /* PLAN CARD */
+  &__plan {
+    @extend .credits-page__card;
+    position: relative;
+    text-align: center;
+
+    &-title {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    &-price {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1677ff;
+    }
+
+    &-credits {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    &-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+
+      li {
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+    }
+
+    &-btn {
+      width: 100%;
+      background: #1677ff;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    &--recommended {
+      border: 2px solid #1677ff;
+
+      &::before {
+        content: "Recommended";
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1677ff;
+        color: #fff;
+        padding: 4px 10px;
+        font-size: 11px;
+        border-radius: 20px;
+      }
+    }
+  }
+
+  /* BOTTOM GRID */
+  &__bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* PAYMENT */
+  &__payment {
+    @extend .credits-page__card;
+
+    &-title {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    &-sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    &-input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+    }
+
+    &-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    &-btn {
+      width: 100%;
+      background: #1677ff;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+  }
+
+  /* TRANSACTIONS */
+  &__transactions {
+    @extend .credits-page__card;
+
+    &-title {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    &-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      &-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 14px;
+
+        &--success {
+          color: #16a34a;
+        }
+
+        &--pending {
+          color: #f59e0b;
+        }
+      }
+    }
+  }
+}

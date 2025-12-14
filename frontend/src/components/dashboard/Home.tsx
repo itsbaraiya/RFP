@@ -5,7 +5,8 @@
 import { useState } from "react";
 import { Row, Col, Button } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
+import { LayoutDashboard } from "lucide-react";
 
 import { 
   DollarSign, 
@@ -147,25 +148,27 @@ const Home = () => {
   }
 };
 
-
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case "Approved":
-        return "badge-success";
-      case "Submitted":
-        return "badge-primary";
-      case "Draft":
-        return "badge-secondary";
-      default:
-        return "badge-secondary";
-    }
-  };
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case "Approved":
+      return "badge-success";
+    case "Submitted":
+      return "badge-primary";
+    case "Draft":
+      return "badge-secondary";
+    default:
+      return "badge-secondary";
+  }
+};
 
   return (
     <div className="customer-dashboard">
-      <div className="dashboard-header">
-        <h1>Customer Dashboard</h1>
-        <p className="dashboard-subtitle">
+      <div className="section-header">
+        <div className="section-header__title">
+          <LayoutDashboard size={40} />
+          <h1>Dashboard</h1>
+        </div>
+        <p className="section-header__subtitle">
           Welcome back, {user.name?.split(" ")[0] || "User"}! Here's an overview of your RFP activities.
         </p>
       </div>

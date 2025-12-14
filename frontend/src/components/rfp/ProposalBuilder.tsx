@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Row, Col, Button, Form, Alert, Spinner, Modal } from "react-bootstrap";
-import { CheckCircle2, Send, Paperclip, Download, Eye, Upload, Sparkles } from "lucide-react";
+import { CheckCircle2, Send, Paperclip, Download, Eye, Upload, Sparkles, Wand2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import RFPUpload from "../RFPUpload";
@@ -181,23 +181,23 @@ const ProposalBuilder: React.FC = () => {
   };
 
   const generatePreview = () => {
-  return {
-    title: formData.title || "Your RFP Title",
-    category: formData.category || "Not specified",
-    description: formData.description || "Description will appear here...",
-    introduction: "Introduction will appear here...",
-    aiPrompt:
-      creationType === "ai"
-        ? formData.aiPrompt || "AI requirements will appear here..."
-        : null,
-    uploadStatus:
-      creationType === "upload"
-        ? fileData
-          ? "Document uploaded and ready for analysis."
-          : "No document uploaded."
-        : null,
+    return {
+      title: formData.title || "Your RFP Title",
+      category: formData.category || "Not specified",
+      description: formData.description || "Description will appear here...",
+      introduction: "Introduction will appear here...",
+      aiPrompt:
+        creationType === "ai"
+          ? formData.aiPrompt || "AI requirements will appear here..."
+          : null,
+      uploadStatus:
+        creationType === "upload"
+          ? fileData
+            ? "Document uploaded and ready for analysis."
+            : "No document uploaded."
+          : null,
+    };
   };
-};
 
   const preview = generatePreview();  
 
@@ -357,9 +357,18 @@ const ProposalBuilder: React.FC = () => {
   };
 
   return (
-    <div className="proposal-builder">
+    <div className="proposal-builder">      
       <Row className="g-0 h-100">    
         <Col xs={12} lg={9} className="proposal-builder__left">
+        <div className="section-header">
+        <div className="section-header__title">
+          <Wand2 size={22} />
+          <h1>Proposal Builder</h1>
+        </div>
+        <p className="section-header__subtitle">
+          Create, edit, and generate AI-powered proposals.
+        </p>
+      </div>
           <div className="proposal-builder__content">
             <div className="proposal-progress">
               {steps.map((step) => (
