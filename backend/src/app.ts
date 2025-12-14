@@ -36,7 +36,7 @@ app.use(
  * CORS
  * ======================
  */
-const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+const allowedOrigin = process.env.FRONTEND_URL;
 
 app.use(
   cors({
