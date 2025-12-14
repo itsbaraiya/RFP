@@ -64,8 +64,6 @@ app.use("/api/rfps", rfpRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.get("/", (req, res) => res.send("API is running"));
-app.use("/api/uploads", express.static(path.join(__dirname, "../uploads")));
-
 
 export default app;
 
