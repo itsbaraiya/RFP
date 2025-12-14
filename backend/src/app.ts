@@ -36,7 +36,7 @@ app.use(
  * CORS
  * ======================
  */
-const allowedOrigin = process.env.FRONTEND_URL;
+const allowedOrigin = process.env.Frontend_URL;
 
 app.use(
   cors({

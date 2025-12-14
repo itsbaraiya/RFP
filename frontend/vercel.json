@@ -5,8 +5,18 @@
       "destination": "https://rfp-a4lu.onrender.com/api/uploads/rfps/generated/:path*"
     },
     {
+      "source": "/((?!assets|files).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
       "source": "/(.*)",
-      "destination": "/"
+      "headers": [
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
     }
   ]
 }
