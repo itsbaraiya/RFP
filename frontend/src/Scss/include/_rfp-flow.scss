@@ -10,59 +10,68 @@
   text-align: center;
   margin-bottom: 25px;
   left: 0;
-}
-.rfp-header h3 {
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-.rfp-header p {
-  opacity: 0.7;
+
+  h3 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    opacity: 0.7;
+  }
 }
 
 /* Glassmorphism Card */
-.rfp-card {
-  background: rgba(255,255,255,0.65);
-  padding: 25px;
-  border-radius: 18px;
-  box-shadow: 0px 6px 25px rgba(0,0,0,0.1);
-  backdrop-filter: blur(8px);
+.rfp {
+  &-card {
+    background: rgba(255,255,255,0.65);
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0px 6px 25px rgba(0,0,0,0.1);
+    backdrop-filter: blur(8px);
+  }
+        
+  /* Inputs */
+  &-input {
+    border-radius: 10px !important;
+    padding: 12px !important;
+  }
+  
+  /* Stepper */
+  &-stepper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+
+    .step {
+      width: 35px;
+      height: 35px;
+      background: #dcdcdc;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 600;
+
+      &.active {
+        background: #0d6efd;
+        color: white;
+      }
+    }
+
+    .line {
+      width: 40px;
+      height: 3px;
+      background: #dcdcdc;
+
+      &.active {
+        background: #0d6efd;
+      }
+    }
+  }
 }
 
-/* Inputs */
-.rfp-input {
-  border-radius: 10px !important;
-  padding: 12px !important;
-}
-
-/* Stepper */
-.rfp-stepper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-.rfp-stepper .step {
-  width: 35px;
-  height: 35px;
-  background: #dcdcdc;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 600;
-}
-.rfp-stepper .step.active {
-  background: #0d6efd;
-  color: white;
-}
-.rfp-stepper .line {
-  width: 40px;
-  height: 3px;
-  background: #dcdcdc;
-}
-.rfp-stepper .line.active {
-  background: #0d6efd;
-}
 
 /* Option Cards */
 .rfp-options {
@@ -101,4 +110,8 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.proposal-builder__button {
+  margin-top: 50px;
 }

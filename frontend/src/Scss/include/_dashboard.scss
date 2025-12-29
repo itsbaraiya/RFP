@@ -239,7 +239,7 @@
 
   // Customer Dashboard Styles
   .customer-dashboard {
-    padding: 15px 25px;
+    padding: 20px 25px;
 
     .dashboard-header {
       margin-bottom: 2rem;
@@ -396,7 +396,6 @@
 
       &__subtitle {
         font-size: 0.875rem;
-        color: rgba(255, 255, 255, 0.6);
         margin-bottom: 1.5rem;
       }
     }
@@ -1118,6 +1117,10 @@
     &__content {
       max-width: 1000px;
       margin: 0 auto;
+
+      @include media-breakpoint-up(xxl) {
+        max-width: 1200px;
+      }
     }
   }
 
@@ -1528,6 +1531,7 @@
     padding: 1rem;
     border-radius: 8px;
     max-width: 85%;
+    position: relative;
 
     &--assistant {
       background: rgba(255, 255, 255, 0.05);
@@ -1538,6 +1542,50 @@
       background: rgba(37, 99, 235, 0.2);
       align-self: flex-end;
       margin-left: auto;
+    }
+
+    &__content {
+      p {
+        color: #fff;
+        margin: 0;
+        line-height: 1.6;
+      }
+    }
+
+    &__copy {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.2s ease;
+      opacity: 0;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    &--assistant:hover .ai-message__copy {
+      opacity: 1;
     }
 
     p {

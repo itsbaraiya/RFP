@@ -4,7 +4,7 @@ import { RFPService } from "../services/RFPService";
 export class RFPController {
 
   // ======================================================
-  // 📤 Upload RFP
+  // Upload RFP
   // ======================================================
   static async upload(req: Request, res: Response) {
     try {
@@ -25,13 +25,12 @@ export class RFPController {
       });
 
     } catch (err: any) {
-      console.error("Upload Error:", err);
       return res.status(500).json({ error: err.message || "File upload failed" });
     }
   }
 
   // ======================================================
-  // ❌ Delete RFP
+  // Delete RFP
   // ======================================================
   static async deleteRFP(req: Request, res: Response) {
     try {
@@ -45,13 +44,12 @@ export class RFPController {
       return res.status(200).json(result);
 
     } catch (err: any) {
-      console.error("Delete RFP Error:", err);
       return res.status(500).json({ error: err.message || "Failed to delete RFP" });
     }
   }
 
   // ======================================================
-  // 🧠 Analyze RFP
+  // Analyze RFP
   // ======================================================
   static async analyze(req: Request, res: Response) {
     try {
@@ -64,13 +62,12 @@ export class RFPController {
       return res.status(200).json(analysis);
 
     } catch (err: any) {
-      console.error("Analyze Error:", err);
       return res.status(500).json({ error: err.message || "Failed to analyze RFP" });
     }
   }
 
   // ======================================================
-  // 📜 Get All RFPs for User
+  // Get All RFPs for User
   // ======================================================
   static async getAll(req: Request, res: Response) {
     try {
@@ -83,13 +80,12 @@ export class RFPController {
       return res.status(200).json(rfps);
 
     } catch (err: any) {
-      console.error("Get All RFPs Error:", err);
       return res.status(500).json({ error: err.message || "Failed to fetch RFPs" });
     }
   }
 
   // ======================================================
-  // 👥 Get Collaborators
+  // Get Collaborators
   // ======================================================
   static async getCollaborators(req: Request, res: Response) {
     try {
@@ -100,13 +96,31 @@ export class RFPController {
       return res.status(200).json(collaborators);
 
     } catch (err: any) {
-      console.error("Get Collaborators Error:", err);
       return res.status(500).json({ error: err.message || "Failed to fetch collaborators" });
     }
   }
 
   // ======================================================
-  // ➕ Add Collaborator
+  // Get All RFPs with Collaborators
+  // ======================================================
+  static async getAllRFPsWithCollaborators(req: Request, res: Response) {
+    try {
+      const userId = Number((req.user as any)?.id);
+      if (!userId || isNaN(userId)) {
+        return res.status(401).json({ error: "Unauthorized: Invalid user ID" });
+      }
+
+      const rfps = await RFPService.getAllRFPsWithCollaborators(userId);
+      return res.status(200).json(rfps);
+
+    } catch (err: any) {
+      console.error("Get All RFPs with Collaborators Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to fetch RFPs with collaborators" });
+    }
+  }
+
+  // ======================================================
+  // Add Collaborator
   // ======================================================
   static async addCollaborator(req: Request, res: Response) {
     try {
@@ -122,13 +136,12 @@ export class RFPController {
       return res.status(201).json(result);
 
     } catch (err: any) {
-      console.error("Add Collaborator Error:", err);
       return res.status(500).json({ error: err.message || "Failed to add collaborator" });
     }
   }
 
   // ======================================================
-  // ❌ Remove Collaborator
+  // Remove Collaborator
   // ======================================================
   static async removeCollaborator(req: Request, res: Response) {
     try {
@@ -143,13 +156,12 @@ export class RFPController {
       return res.status(200).json(result);
 
     } catch (err: any) {
-      console.error("Remove Collaborator Error:", err);
       return res.status(500).json({ error: err.message || "Failed to remove collaborator" });
     }
   }
 
   // ======================================================
-  // 🧠 Generate AI RFP
+  // Generate AI RFP
   // ======================================================
   static async generateAI(req: Request, res: Response) {
     try {
@@ -159,17 +171,13 @@ export class RFPController {
       const { title, description, category, prompt } = req.body;
       const rfp = await RFPService.generateAI(title, description, category, prompt, userId);
 
-      // Auto analyze the newly created RFP so that questions are already available
       try {
         const analysis = await RFPService.analyze(rfp.id);
         return res.status(201).json({ message: "AI RFP generated and analyzed successfully", rfp, analysis });
-      } catch (analysisErr: any) {
-        // If analysis fails, we still return the created RFP but inform analysis failed
-        console.error("Auto-analysis failed:", analysisErr);
+      } catch (analysisErr: any) {        
         return res.status(201).json({ message: "AI RFP generated but analysis failed", rfp, analysisError: analysisErr.message || "Analysis failed" });
       }
     } catch (err: any) {
-      console.error("Generate AI RFP Error:", err);
       return res.status(500).json({ error: err.message || "Failed to generate AI RFP" });
     }
   }
@@ -189,7 +197,6 @@ export class RFPController {
 
       return res.status(200).json(payload);
     } catch (err: any) {
-      console.error("Get Questions Error:", err);
       return res.status(500).json({ error: err.message || "Failed to load analysis" });
     }
   }

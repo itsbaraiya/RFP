@@ -4,16 +4,21 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute, AuthRedirect } from "./components/routes/ProtectedRoute";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Loader from "./components/common/Loader";
 
 const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const Login = lazy(() => import("./components/auth/Login"));
 const Register = lazy(() => import("./components/auth/Register"));
+const ForgotPassword = lazy(() => import("./components/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./components/auth/ResetPassword"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const hideHeaderFooter = ["/login", "/register", "/dashboard"];
+  const hideHeaderFooter = ["/login", "/register", "/forgot-password", "/reset-password", "/dashboard"];
   const show = !hideHeaderFooter.includes(location.pathname);
 
   return (
@@ -30,7 +35,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppLayout>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loader />}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route
@@ -65,6 +70,24 @@ function App() {
                   </AuthRedirect>
                 }
               />
+              <Route
+                path="/forgot-password"
+                element={
+                  <AuthRedirect>
+                    <ForgotPassword />
+                  </AuthRedirect>
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  <AuthRedirect>
+                    <ResetPassword />
+                  </AuthRedirect>
+                }
+              />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             </Routes>
           </Suspense>
         </AppLayout>

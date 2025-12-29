@@ -7,6 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { RFPController } from "../controllers/RFPController";
+import { AIChatController } from "../controllers/AIChatController";
 import { authMiddleware } from "../middlewares/auth";
 
 const router = express.Router();
@@ -25,12 +26,13 @@ router.post("/upload", authMiddleware, upload.single("rfp"), RFPController.uploa
 router.get("/", authMiddleware, RFPController.getAll);
 router.post("/generate", authMiddleware, RFPController.generateAI);
 router.post("/analyze/:rfpId", authMiddleware, RFPController.analyze);
+// Get all RFPs with collaborators (must be before dynamic routes)
+router.get("/with-collaborators", authMiddleware, RFPController.getAllRFPsWithCollaborators);
 router.get("/:id/collaborators", authMiddleware, RFPController.getCollaborators);
 router.post("/:id/collaborators", authMiddleware, RFPController.addCollaborator);
 router.delete("/:id", authMiddleware, RFPController.deleteRFP);
-// GET /rfps/:id/questions
-// GET all questions for a specific RFP
 router.get("/:id/questions", authMiddleware, RFPController.getQuestions);
+router.post("/ai-chat", authMiddleware, AIChatController.chat);
 
 
 // router.delete("/:id/collaborators/:userId", authMiddleware, RFPController.removeCollaborator);

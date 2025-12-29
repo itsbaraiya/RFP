@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
-import { FaUser, FaLock } from "react-icons/fa";
+import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import api from "../../api/axios";
 
@@ -55,9 +55,6 @@ const Register: React.FC = () => {
           />
         ))}
       </div>
-
-      <div className="mini-robot">🤖</div>
-
       <Container fluid className="h-100">
         <Row className="h-100 g-0">
           <Col xs={12} md={6} className="form-side d-flex align-items-center justify-content-center">
@@ -78,7 +75,7 @@ const Register: React.FC = () => {
                   />
                 </div>
                 <div className="input-wrapper">
-                  <FaUser className="input-icon" />
+                  <FaEnvelope className="input-icon" />
                   <input 
                     type="email" 
                     placeholder="Email" 

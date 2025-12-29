@@ -250,9 +250,7 @@ static async getQuestions(rfpId: number) {
     },
   });
 
-  if (!rfp) throw new Error("RFP not found");
-
-  // Map DB Question rows to API-friendly shape
+  if (!rfp) throw new Error("RFP not found");  
   const questions = (rfp.questions || []).map((q) => ({
     id: q.id,
     questionText: q.questionText,
@@ -334,6 +332,49 @@ Return ONLY plain text.
 
     return collaborators.map((c) => ({
       id: c.user.id, name: c.user.name, email: c.user.email, role: c.role,
+    }));
+  }
+
+  static async getAllRFPsWithCollaborators(userId: number) {    
+    const rfps = await prisma.rFP.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        collaborators: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return rfps.map((rfp) => ({
+      id: rfp.id,
+      title: rfp.title,
+      description: rfp.description,
+      status: rfp.status,
+      createdAt: rfp.createdAt,
+      collaborators: rfp.collaborators.map((c) => ({
+        id: c.user.id,
+        name: c.user.name,
+        email: c.user.email,
+        role: c.role || "Collaborator",
+        status: c.status,
+        avatar: c.user.avatar,
+      })),
     }));
   }
 

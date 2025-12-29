@@ -15,13 +15,18 @@ import {
   CheckCircle2,
   Users,
   Trash2,
+  ArrowRight,
 } from "lucide-react";
 import api from "../../api/axios";
 import Lottie from "lottie-react";
 import emptyAnimation from "../../assets/lottie/empty.json";
 
 
-const MyRFPs: React.FC = () => {
+interface MyRFPsProps {
+  setActiveTab?: (tab: string) => void;
+}
+
+const MyRFPs: React.FC<MyRFPsProps> = ({ setActiveTab }) => {
   const [rfps, setRfps] = useState<any[]>([]);
   const [loadingRfps, setLoadingRfps] = useState(false);
 
@@ -223,8 +228,16 @@ const MyRFPs: React.FC = () => {
       ) : rfps.length === 0 ? (
         <div className="empty-lottie__animation">
           <Lottie animationData={emptyAnimation} loop={false} className="empty-lottie"/>
-          <p className="fs-5">No RFPs uploaded yet</p>
-          <p className="small text-secondary">Start by uploading your first RFP to analyze and collaborate.</p>
+          <p>No RFPs uploaded yet</p>
+          <p className="small text-secondary">Start your first RFP to analyze and collaborate.</p>
+          {setActiveTab && (
+            <Button              
+              className="proposal-builder__button"
+              onClick={() => setActiveTab("proposalbuilder")}
+            >
+              Let's Start <ArrowRight size={16} />
+            </Button>
+          )}
         </div>
       ) : (
         <div className="row g-4">

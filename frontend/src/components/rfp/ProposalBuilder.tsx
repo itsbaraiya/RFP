@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Row, Col, Button, Form, Alert, Spinner, Modal } from "react-bootstrap";
-import { CheckCircle2, Send, Paperclip, Download, Eye, Upload, Sparkles, Wand2 } from "lucide-react";
+import { CheckCircle2, Send, Paperclip, Download, Eye, Upload, Sparkles, Wand2, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import RFPUpload from "../RFPUpload";
@@ -29,6 +29,8 @@ const ProposalBuilder: React.FC = () => {
   ]);
   const [userMessage, setUserMessage] = useState("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const steps = [
     {
@@ -149,35 +151,54 @@ const ProposalBuilder: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!userMessage.trim()) return;
+    if (!userMessage.trim() || aiLoading) return;
 
     const newUserMessage = {
-      role: "user",
+      role: "user" as const,
       content: userMessage,
     };
 
     setAiMessages((prev) => [...prev, newUserMessage]);
     setUserMessage("");
+    setAiLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      let aiResponse = "";
-      if (userMessage.toLowerCase().includes("opening paragraph")) {
-        aiResponse =
-          "We are pleased to invite qualified software development firms to submit proposals for the development of a comprehensive web application. This project represents a significant opportunity to partner with an innovative organization committed to delivering exceptional digital solutions.";
-      } else if (userMessage.toLowerCase().includes("budget")) {
-        aiResponse =
-          "To enhance clarity, consider breaking down costs by phase (e.g., discovery, development, testing), resource (e.g., personnel, software licenses), or deliverables. Also, specify payment terms and currency.";
-      } else {
-        aiResponse =
-          "I can help you refine your proposal. Would you like suggestions for any specific section?";
-      }
+    try {
+      // Prepare proposal context
+      const proposalContext = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        aiPrompt: formData.aiPrompt,
+      };
 
-      setAiMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: aiResponse },
-      ]);
-    }, 1000);
+      // Call AI chat API
+      const response = await api.post("/rfps/ai-chat", {
+        messages: [
+          ...aiMessages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          newUserMessage,
+        ],
+        proposalContext,
+      });
+
+      const aiResponse = {
+        role: "assistant" as const,
+        content: response.data.message,
+      };
+
+      setAiMessages((prev) => [...prev, aiResponse]);
+    } catch (error: any) {
+      console.error("AI Chat Error:", error);
+      const errorMessage = {
+        role: "assistant" as const,
+        content: error.response?.data?.error || "Sorry, I encountered an error. Please try again.",
+      };
+      setAiMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const generatePreview = () => {
@@ -276,6 +297,16 @@ const ProposalBuilder: React.FC = () => {
       setShowPreviewModal(true);
     } catch {
       setError("Failed to generate preview.");
+    }
+  };
+
+  const handleCopyMessage = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
     }
   };
 
@@ -659,23 +690,47 @@ const ProposalBuilder: React.FC = () => {
                   key={index}
                   className={`ai-message ai-message--${message.role}`}
                 >
-                  <p>{message.content}</p>
+                  <div className="ai-message__content">
+                    <p>{message.content}</p>
+                  </div>
+                  {message.role === "assistant" && (
+                    <button
+                      className="ai-message__copy"
+                      onClick={() => handleCopyMessage(message.content, index)}
+                      title="Copy message"
+                    >
+                      {copiedIndex === index ? (
+                        <Check size={14} />
+                      ) : (
+                        <Copy size={14} />
+                      )}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
             <div className="ai-assistant__input">
-              <Button variant="link" className="ai-assistant__attach">
+              <Button variant="link" className="ai-assistant__attach" disabled>
                 <Paperclip size={18} />
               </Button>
               <input
                 type="text"
-                placeholder="Type your message..."
+                placeholder={aiLoading ? "AI is thinking..." : "Type your message..."}
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                onKeyPress={(e) => e.key === "Enter" && !aiLoading && handleSendMessage()}
+                disabled={aiLoading}
               />
-              <Button variant="primary" onClick={handleSendMessage}>
-                <Send size={18} />
+              <Button 
+                variant="primary" 
+                onClick={handleSendMessage}
+                disabled={aiLoading || !userMessage.trim()}
+              >
+                {aiLoading ? (
+                  <Spinner as="span" animation="border" size="sm" />
+                ) : (
+                  <Send size={18} />
+                )}
               </Button>
             </div>
           </div>

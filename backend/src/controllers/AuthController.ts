@@ -52,4 +52,37 @@ export class AuthController {
       res.status(500).json({ message: err.message });
     }
   }
+
+  static async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const result = await AuthService.forgotPassword(email);
+      res.status(200).json(result);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+
+  static async resetPassword(req: Request, res: Response) {
+    try {
+      const { token, password } = req.body;
+      
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+
+      const result = await AuthService.resetPassword(token, password);
+      res.status(200).json(result);
+    } catch (err: any) {
+      res.status(400).json({ message: err.message });
+    }
+  }
 }

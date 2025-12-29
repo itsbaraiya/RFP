@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
-import { FaUser, FaLock } from "react-icons/fa";
+import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
@@ -57,8 +57,6 @@ const Login: React.FC = () => {
         ))}
       </div>
 
-      <div className="mini-robot">🤖</div>
-
       <Container fluid className="h-100">
         <Row className="h-100 g-0">
           <Col xs={12} md={6} className="form-side d-flex align-items-center justify-content-center">
@@ -72,7 +70,7 @@ const Login: React.FC = () => {
                 <>
                   <form onSubmit={handleSubmit}>
                     <div className="input-wrapper">
-                      <FaUser className="input-icon" />
+                      <FaEnvelope className="input-icon" />
                       <input
                         type="email"
                         placeholder="Email"
@@ -115,11 +113,11 @@ const Login: React.FC = () => {
 
                   <p className="tos-privacy">
                     By clicking 'Submit' or 'Sign up with Google' you agree to our{" "}
-                    <a href="/terms-of-service" target="_blank" rel="noopener noreferrer">
+                    <a href="/terms-of-service">
                       Terms of Service
                     </a>{" "}
                     and acknowledge that you have read and understand our{" "}
-                    <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">
+                    <a href="/privacy-policy">
                       Privacy Policy
                     </a>.
                   </p>

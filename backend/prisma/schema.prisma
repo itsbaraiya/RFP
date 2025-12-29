@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id                Int               @id @default(autoincrement())
+  id                Int                 @id @default(autoincrement())
   name              String
-  email             String            @unique
+  email             String               @unique
   password          String
-  createdAt         DateTime          @default(now())
+  createdAt         DateTime             @default(now())
   avatar            String?
-  isBusy            Boolean           @default(false)
-  role              Role              @default(CUSTOMER)
+  isBusy            Boolean             @default(false)
+  role              Role                 @default(CUSTOMER)
   status            String?
-  updatedAt         DateTime          @updatedAt
-  designation       String?           @default("")
+  updatedAt         DateTime             @updatedAt
+  designation       String?              @default("")
   rfps              RFP[]
   rfpCollaborations RFPCollaborator[]
+  passwordResets    PasswordResetToken[]
 }
 
 model RFP {
@@ -76,6 +77,19 @@ enum RFPStatus {
   ANALYZED
   IN_PROGRESS
   COMPLETED
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }
 
 enum CollaboratorStatus {

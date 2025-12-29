@@ -19,7 +19,6 @@ export class UserController {
       const user = await UserService.createUser(req.body);
       res.status(201).json(user);
     } catch (err: any) {
-      console.error("Error creating user:", err.message);
       res.status(400).json({ error: "Could not create user", details: err.message });
     }
   }
@@ -41,7 +40,6 @@ export class UserController {
       if (!user) return res.status(404).json({ error: "User not found" });
       res.json(user);
     } catch (err: any) {
-      console.error("Error fetching current user:", err);
       res.status(500).json({ error: "Could not fetch user" });
     }
   }
@@ -70,7 +68,6 @@ export class UserController {
 
       res.json({ user: result.user, token: result.token || undefined });
     } catch (err: any) {
-      console.error("Error updating user:", err);
       res.status(500).json({ error: "Could not update user", details: err.message });
     }
   }

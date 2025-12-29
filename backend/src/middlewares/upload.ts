@@ -25,7 +25,6 @@ const storage = multer.diskStorage({
       try {
         fs.unlinkSync(path.join(uploadDir, oldFile));
       } catch (err) {
-        console.error("Error deleting old avatar:", err);
       }
     }
 

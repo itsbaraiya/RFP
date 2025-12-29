@@ -5,7 +5,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-// Extend the Request interface to include user
 declare global {
   namespace Express {
     interface Request {
@@ -34,7 +33,6 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     
     next();
   } catch (error) {
-    console.error("JWT verification error:", error);
     res.status(401).json({ error: "Invalid token" });
   }
 };

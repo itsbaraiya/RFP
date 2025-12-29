@@ -71,7 +71,6 @@ export class UserService {
 
     return { user: updatedUser, token };
   } catch (err) {
-    console.error("Error updating user:", err);
     return null;
   }
   }

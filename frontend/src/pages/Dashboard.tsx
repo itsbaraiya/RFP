@@ -3,7 +3,7 @@
 // //
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import EditProfile from "../pages/EditProfile";
 import UserManagement from "../components/admin/UserManagement";
 import DashboardHome from "../components/dashboard/Home";
@@ -94,7 +94,7 @@ const Dashboard = () => {
       case "user":
         return user?.role === "ADMIN" ? <UserManagement /> : <p>Access Denied</p>;
       case "myrfps":
-        return <MyRFPs />;
+        return <MyRFPs setActiveTab={setActiveTab} />;
       case "proposal":
         return <h2>Manage Proposals</h2>;
       case "collaborators":
@@ -121,10 +121,11 @@ const Dashboard = () => {
       {/* Top Header Bar */}
       <header className="dashboard__header">
         <div className="dashboard__header-left">
-          <div className="dashboard__logo" onClick={() => navigate("/")}>
-            <span className="logo-icon">🔥</span>
-            <span className="logo-text">RFP AI</span>
-          </div>
+        <Link to="/" className="logo-link brand__logo">
+            <div className="logo">
+              RFP<span>AI</span>
+            </div>
+          </Link>
         </div>
         <div className="dashboard__header-right">
           <div className="dashboard__search">
