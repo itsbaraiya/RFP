@@ -18,7 +18,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const hideHeaderFooter = ["/login", "/register", "/forgot-password", "/reset-password", "/dashboard"];
+  const hideHeaderFooter = ["/login", "/register", "/dashboard", "/forgot-password", "/reset-password", "/terms-of-service", "/privacy-policy"];
   const show = !hideHeaderFooter.includes(location.pathname);
 
   return (

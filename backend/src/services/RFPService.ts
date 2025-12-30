@@ -4,7 +4,7 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 import fs from "fs/promises";
 import path from "path";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFPage } from "pdf-lib";
 
 dotenv.config();
 
@@ -30,6 +30,76 @@ export class RFPService {
 
     const rfp = await prisma.rFP.create({
       data: { title: req.file.originalname, filePath: relativePath, userId, status: "PENDING" }
+    });
+
+    return { id: rfp.id, title: rfp.title, filePath: rfp.filePath, status: rfp.status };
+  }
+
+  static async updateRFP(rfpId: number, userId: number, data: { title?: string; description?: string; category?: string; status?: string }) {
+    const rfp = await prisma.rFP.findUnique({ where: { id: rfpId } });
+    if (!rfp) throw new Error("RFP not found");
+    if (rfp.userId !== userId) throw new Error("Unauthorized");
+
+    // Validate status if provided
+    const validStatuses = ["DRAFT", "PENDING", "ANALYZED", "IN_PROGRESS", "COMPLETED"];
+    if (data.status && !validStatuses.includes(data.status)) {
+      throw new Error(`Invalid status: ${data.status}. Must be one of: ${validStatuses.join(", ")}`);
+    }
+
+    const updatedRfp = await prisma.rFP.update({
+      where: { id: rfpId },
+      data: {
+        ...(data.title && { title: data.title }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.category !== undefined && { category: data.category }),
+        ...(data.status && { status: data.status as "DRAFT" | "PENDING" | "ANALYZED" | "IN_PROGRESS" | "COMPLETED" }),
+      },
+    });
+
+    // Create activity log
+    const activityDetails: string[] = [];
+    if (data.title) activityDetails.push(`updated title`);
+    if (data.description !== undefined) activityDetails.push(`updated description`);
+    if (data.category !== undefined) activityDetails.push(`updated category`);
+    if (data.status) activityDetails.push(`changed status to ${data.status}`);
+
+    if (activityDetails.length > 0) {
+      await prisma.rFPActivity.create({
+        data: {
+          rfpId,
+          userId,
+          action: "updated",
+          details: activityDetails.join(", "),
+        },
+      });
+    }
+
+    return updatedRfp;
+  }
+
+  static async createDraft(title: string, description: string | undefined, category: string | undefined, userId: number, aiPrompt?: string) {
+    // Create a placeholder file path for drafts (will be updated when submitted)
+    const uploadsFolder = path.join(__dirname, "..", "..", "uploads", "rfps", "generated");
+    await fs.mkdir(uploadsFolder, { recursive: true });
+    
+    const fileName = `draft-${sanitizeFileName(title)}-${Date.now()}.txt`;
+    const filePath = path.join(uploadsFolder, fileName);
+    
+    // Create a placeholder file with draft content
+    const draftContent = `DRAFT RFP\nTitle: ${title}\nDescription: ${description || ""}\nCategory: ${category || ""}\nAI Prompt: ${aiPrompt || ""}`;
+    await fs.writeFile(filePath, draftContent);
+
+    const relativePath = path.relative(path.join(__dirname, "..", ".."), filePath).replace(/\\/g, "/");
+
+    const rfp = await prisma.rFP.create({
+      data: { 
+        title, 
+        description: description || "", 
+        category: category || "", 
+        filePath: relativePath, 
+        userId, 
+        status: "DRAFT" as "DRAFT" | "PENDING" | "ANALYZED" | "IN_PROGRESS" | "COMPLETED"
+      },
     });
 
     return { id: rfp.id, title: rfp.title, filePath: rfp.filePath, status: rfp.status };
@@ -250,7 +320,9 @@ static async getQuestions(rfpId: number) {
     },
   });
 
-  if (!rfp) throw new Error("RFP not found");  
+  if (!rfp) throw new Error("RFP not found");
+
+  // Map DB Question rows to API-friendly shape
   const questions = (rfp.questions || []).map((q) => ({
     id: q.id,
     questionText: q.questionText,
@@ -297,19 +369,157 @@ Return ONLY plain text.
     const fileName = `${sanitizeFileName(title)}-${Date.now()}.pdf`;
     const filePath = path.join(uploadsFolder, fileName);
 
+    // Create well-formatted PDF
     const pdfDoc = await PDFDocument.create();
+    
+    // Embed fonts
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
     let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontSize = 12;
-    const lines = rfpText.split("\n");
-
-    let y = height - 50;
-
-    for (const line of lines) {
-      if (y < 50) { page = pdfDoc.addPage(); y = height - 50; }
-      page.drawText(line, { x: 50, y, size: fontSize, font, color: rgb(0, 0, 0) });
-      y -= fontSize + 5;
+    let y = height - 60;
+    const margin = 60;
+    const maxWidth = width - (margin * 2);
+    const lineHeight = 14;
+    const paragraphSpacing = 8;
+    
+    // Helper function to wrap text and add to page
+    const addWrappedText = (text: string, fontSize: number, isBold: boolean, textColor: any, extraSpacing: number = 0) => {
+      const font = isBold ? helveticaBold : helvetica;
+      const words = text.split(" ");
+      let currentLine = "";
+      
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const textWidth = font.widthOfTextAtSize(testLine, fontSize);
+        
+        if (textWidth > maxWidth && currentLine) {
+          // Need new line - draw current line first
+          if (y < 80) {
+            page = pdfDoc.addPage();
+            y = height - 60;
+          }
+          page.drawText(currentLine, {
+            x: margin,
+            y,
+            size: fontSize,
+            font,
+            color: textColor,
+          });
+          y -= (fontSize + extraSpacing);
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      
+      // Draw remaining line
+      if (currentLine) {
+        if (y < 80) {
+          page = pdfDoc.addPage();
+          y = height - 60;
+        }
+        page.drawText(currentLine, {
+          x: margin,
+          y,
+          size: fontSize,
+          font,
+          color: textColor,
+        });
+        y -= (fontSize + extraSpacing);
+      }
+    };
+    
+    // Title (centered, large, bold)
+    const titleWidth = helveticaBold.widthOfTextAtSize(title, 24);
+    page.drawText(title, {
+      x: (width - titleWidth) / 2,
+      y,
+      size: 24,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    y -= 40;
+    
+    // Divider line
+    page.drawLine({
+      start: { x: margin, y },
+      end: { x: width - margin, y },
+      thickness: 1,
+      color: rgb(0.7, 0.7, 0.7),
+    });
+    y -= 25;
+    
+    // Metadata section
+    if (category) {
+      addWrappedText(`Category: ${category}`, 10, false, rgb(0.4, 0.4, 0.4), 2);
+    }
+    addWrappedText(`Generated: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`, 10, false, rgb(0.4, 0.4, 0.4), 2);
+    y -= 15;
+    
+    // Description section
+    if (description) {
+      addWrappedText("Description", 16, true, rgb(0, 0, 0), 4);
+      y -= 5;
+      addWrappedText(description, 11, false, rgb(0.2, 0.2, 0.2), paragraphSpacing);
+      y -= 10;
+    }
+    
+    // Parse and format RFP content with better structure
+    const lines = rfpText.split("\n").filter(l => l.trim());
+    let inParagraph = false;
+    let paragraphText = "";
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) {
+        if (paragraphText) {
+          addWrappedText(paragraphText, 11, false, rgb(0.2, 0.2, 0.2), paragraphSpacing);
+          paragraphText = "";
+          inParagraph = false;
+          y -= 5;
+        }
+        continue;
+      }
+      
+      // Check if it's a heading
+      const isHeading = /^#+\s/.test(line) || 
+                       /^(Executive Summary|Introduction|Background|Scope of Work|Requirements|Timeline|Budget|Deliverables|Evaluation Criteria|Contact Information|Project Overview|Technical Requirements|Submission Guidelines)/i.test(line) ||
+                       (line.length < 80 && line === line.toUpperCase() && line.split(" ").length <= 6);
+      
+      if (isHeading) {
+        // Flush any pending paragraph
+        if (paragraphText) {
+          addWrappedText(paragraphText, 11, false, rgb(0.2, 0.2, 0.2), paragraphSpacing);
+          paragraphText = "";
+          y -= 5;
+        }
+        
+        // Add heading
+        const headingText = line.replace(/^#+\s*/, "").trim();
+        y -= 10; // Extra space before heading
+        if (y < 100) {
+          page = pdfDoc.addPage();
+          y = height - 60;
+        }
+        addWrappedText(headingText, 16, true, rgb(0, 0, 0), 6);
+        y -= 5;
+        inParagraph = false;
+      } else {
+        // Regular text - accumulate into paragraph
+        if (paragraphText) {
+          paragraphText += " " + line;
+        } else {
+          paragraphText = line;
+        }
+        inParagraph = true;
+      }
+    }
+    
+    // Flush remaining paragraph
+    if (paragraphText) {
+      addWrappedText(paragraphText, 11, false, rgb(0.2, 0.2, 0.2), paragraphSpacing);
     }
 
     const pdfBytes = await pdfDoc.save();
@@ -324,26 +534,11 @@ Return ONLY plain text.
     return { id: rfp.id, title: rfp.title, filePath: rfp.filePath, status: rfp.status };
   }
 
-  static async getCollaborators(rfpId: number) {
-    const collaborators = await prisma.rFPCollaborator.findMany({
-      where: { rfpId },
-      include: { user: { select: { id: true, name: true, email: true, role: true } } },
-    });
-
-    return collaborators.map((c) => ({
-      id: c.user.id, name: c.user.name, email: c.user.email, role: c.role,
-    }));
-  }
-
-  static async getAllRFPsWithCollaborators(userId: number) {    
-    const rfps = await prisma.rFP.findMany({
+  static async getAllRFPsWithCollaborators(userId: number) {
+    // Get RFPs where user is the owner OR a collaborator (with ACCEPTED status)
+    const ownedRfps = await prisma.rFP.findMany({
       where: { userId },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        createdAt: true,
+      include: {
         collaborators: {
           include: {
             user: {
@@ -357,24 +552,92 @@ Return ONLY plain text.
             },
           },
         },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return rfps.map((rfp) => ({
-      id: rfp.id,
-      title: rfp.title,
-      description: rfp.description,
-      status: rfp.status,
-      createdAt: rfp.createdAt,
-      collaborators: rfp.collaborators.map((c) => ({
-        id: c.user.id,
-        name: c.user.name,
-        email: c.user.email,
-        role: c.role || "Collaborator",
-        status: c.status,
-        avatar: c.user.avatar,
+    // Get RFPs where user is a collaborator (ACCEPTED status)
+    const collaborationRecords = await prisma.rFPCollaborator.findMany({
+      where: {
+        userId,
+        status: "ACCEPTED",
+      },
+      include: {
+        rfp: {
+          include: {
+            collaborators: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Combine owned RFPs and collaborated RFPs, removing duplicates
+    const ownedRfpIds = new Set(ownedRfps.map(r => r.id));
+    const collaboratedRfps = collaborationRecords
+      .map(c => c.rfp)
+      .filter(rfp => !ownedRfpIds.has(rfp.id)); // Exclude RFPs already in owned list
+
+    const allRfps = [...ownedRfps, ...collaboratedRfps];
+
+    const baseUrl = process.env.BASE_URL || "http://localhost:5001";
+
+    return allRfps.map(rfp => ({
+      ...rfp,
+      collaborators: rfp.collaborators.map(collab => ({
+        id: collab.user.id,
+        name: collab.user.name,
+        email: collab.user.email,
+        role: collab.role,
+        status: collab.status,
+        avatar: collab.user.avatar ? `${baseUrl}${collab.user.avatar}` : null,
       })),
+    }));
+  }
+
+  static async getCollaborators(rfpId: number) {
+    const collaborators = await prisma.rFPCollaborator.findMany({
+      where: { rfpId },
+      include: { user: { select: { id: true, name: true, email: true, role: true, avatar: true } } },
+      orderBy: { invitedAt: "desc" },
+    });
+
+    const baseUrl = process.env.BASE_URL || "http://localhost:5001";
+
+    return collaborators.map((c) => ({
+      id: c.user.id,
+      name: c.user.name,
+      email: c.user.email,
+      role: c.role,
+      status: c.status,
+      avatar: c.user.avatar ? `${baseUrl}${c.user.avatar}` : null,
+      invitedAt: c.invitedAt,
+      acceptedAt: c.acceptedAt,
     }));
   }
 
@@ -388,16 +651,371 @@ Return ONLY plain text.
     });
     if (exists) throw new Error("Already a collaborator");
 
+    // Get RFP details for email
+    const rfp = await prisma.rFP.findUnique({ where: { id: rfpId }, include: { user: true } });
+    if (!rfp) throw new Error("RFP not found");
+
     const created = await prisma.rFPCollaborator.create({
-      data: { rfpId, userId: collaboratorUser.id, role: "Collaborator" },
-      include: { user: true },
+      data: {
+        rfpId,
+        userId: collaboratorUser.id,
+        role: "Collaborator",
+        status: "INVITED",
+        invitedAt: new Date(),
+      },
+      include: { user: true, rfp: { include: { user: true } } },
     });
 
-    return { message: "Collaborator added", collaborator: { id: created.user.id, name: created.user.name, email: created.user.email, role: created.role } };
+    // Send invitation email
+    try {
+      const EmailService = (await import("./EmailService")).default;
+      const emailService = new EmailService();
+      
+      // Check if email service is configured
+      if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+        console.warn("⚠️ Email service not configured. SMTP credentials missing. Invitation email not sent.");
+        console.warn("   Collaborator was added successfully, but they won't receive an email notification.");
+        console.warn("   To enable emails, set SMTP_USER and SMTP_PASSWORD in your .env file.");
+      } else {
+        const inviteLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard?tab=collaborators`;
+        console.log(`📧 Sending collaboration invite email to: ${collaboratorUser.email}`);
+        await emailService.sendCollaboratorInvite(
+          collaboratorUser.email,
+          collaboratorUser.name || "User",
+          rfp.title,
+          rfp.user.name || "RFP Owner",
+          inviteLink
+        );
+        console.log(`✅ Collaboration invite email sent successfully to: ${collaboratorUser.email}`);
+      }
+    } catch (emailErr: any) {
+      console.error("❌ Failed to send invitation email:", emailErr);
+      console.error("   Error details:", emailErr.message || emailErr);
+      // Don't fail the request if email fails - collaborator is still added
+    }
+
+    // Create activity log
+    await prisma.rFPActivity.create({
+      data: {
+        rfpId,
+        userId: requesterId,
+        action: "added_collaborator",
+        details: `Added ${collaboratorUser.name} as a collaborator`,
+      },
+    });
+
+    return {
+      message: "Collaborator invited successfully",
+      collaborator: {
+        id: created.user.id,
+        name: created.user.name,
+        email: created.user.email,
+        role: created.role,
+        status: created.status,
+      },
+    };
+  }
+
+  static async acceptInvite(rfpId: number, userId: number) {
+    const collaboration = await prisma.rFPCollaborator.findUnique({
+      where: { rfpId_userId: { rfpId, userId } },
+    });
+
+    if (!collaboration) throw new Error("Invitation not found");
+    if (collaboration.status !== "INVITED") throw new Error("Invitation already processed");
+
+    const updated = await prisma.rFPCollaborator.update({
+      where: { rfpId_userId: { rfpId, userId } },
+      data: {
+        status: "ACCEPTED",
+        acceptedAt: new Date(),
+      },
+      include: { user: true, rfp: true },
+    });
+
+    // Create activity log
+    await prisma.rFPActivity.create({
+      data: {
+        rfpId,
+        userId,
+        action: "accepted_invite",
+        details: `Accepted collaboration invitation`,
+      },
+    });
+
+    return {
+      message: "Invitation accepted",
+      collaboration: {
+        rfpId: updated.rfpId,
+        rfpTitle: updated.rfp.title,
+        status: updated.status,
+      },
+    };
+  }
+
+  static async rejectInvite(rfpId: number, userId: number) {
+    const collaboration = await prisma.rFPCollaborator.findUnique({
+      where: { rfpId_userId: { rfpId, userId } },
+    });
+
+    if (!collaboration) throw new Error("Invitation not found");
+    if (collaboration.status !== "INVITED") throw new Error("Invitation already processed");
+
+    // Delete the collaboration record when rejected
+    await prisma.rFPCollaborator.delete({
+      where: { rfpId_userId: { rfpId, userId } },
+    });
+
+    return {
+      message: "Invitation rejected",
+      rfpId,
+    };
+  }
+
+  static async getPendingInvites(userId: number) {
+    const invites = await prisma.rFPCollaborator.findMany({
+      where: {
+        userId,
+        status: "INVITED",
+      },
+      include: {
+        rfp: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { invitedAt: "desc" },
+    });
+
+    return invites.map((invite) => ({
+      id: invite.id,
+      rfpId: invite.rfpId,
+      rfpTitle: invite.rfp.title,
+      rfpDescription: invite.rfp.description,
+      ownerName: invite.rfp.user.name,
+      ownerEmail: invite.rfp.user.email,
+      role: invite.role,
+      invitedAt: invite.invitedAt,
+    }));
   }
 
   static async removeCollaborator(rfpId: number, userId: number) {
     await prisma.rFPCollaborator.delete({ where: { rfpId_userId: { rfpId, userId } } });
     return { message: "Collaborator removed" };
+  }
+
+  static async getComments(rfpId: number, userId: number) {
+    // Check if user has access (owner or accepted collaborator)
+    const rfp = await prisma.rFP.findUnique({
+      where: { id: rfpId },
+      include: {
+        collaborators: {
+          where: {
+            userId,
+            status: "ACCEPTED",
+          },
+        },
+      },
+    });
+
+    if (!rfp) throw new Error("RFP not found");
+    if (rfp.userId !== userId && rfp.collaborators.length === 0) {
+      throw new Error("Unauthorized: You don't have access to this RFP");
+    }
+
+    const comments = await prisma.rFPComment.findMany({
+      where: { rfpId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const baseUrl = process.env.BASE_URL || "http://localhost:5001";
+
+    return comments.map((comment) => ({
+      id: comment.id,
+      userId: comment.user.id,
+      userName: comment.user.name,
+      userAvatar: comment.user.avatar ? `${baseUrl}${comment.user.avatar}` : null,
+      content: comment.content,
+      createdAt: comment.createdAt.toISOString(),
+    }));
+  }
+
+  static async addComment(rfpId: number, userId: number, content: string) {
+    // Check if user has access (owner or accepted collaborator)
+    const rfp = await prisma.rFP.findUnique({
+      where: { id: rfpId },
+      include: {
+        collaborators: {
+          where: {
+            userId,
+            status: "ACCEPTED",
+          },
+        },
+      },
+    });
+
+    if (!rfp) throw new Error("RFP not found");
+    if (rfp.userId !== userId && rfp.collaborators.length === 0) {
+      throw new Error("Unauthorized: You don't have access to comment on this RFP");
+    }
+
+    if (!content || !content.trim()) {
+      throw new Error("Comment content cannot be empty");
+    }
+
+    const comment = await prisma.rFPComment.create({
+      data: {
+        rfpId,
+        userId,
+        content: content.trim(),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    const baseUrl = process.env.BASE_URL || "http://localhost:5001";
+
+    // Create activity log for comment
+    await prisma.rFPActivity.create({
+      data: {
+        rfpId,
+        userId,
+        action: "commented",
+        details: `Added a comment`,
+      },
+    });
+
+    return {
+      id: comment.id,
+      userId: comment.user.id,
+      userName: comment.user.name,
+      userAvatar: comment.user.avatar ? `${baseUrl}${comment.user.avatar}` : null,
+      content: comment.content,
+      createdAt: comment.createdAt.toISOString(),
+    };
+  }
+
+  static async getActivities(rfpId: number, userId: number) {
+    // Check if user has access (owner or accepted collaborator)
+    const rfp = await prisma.rFP.findUnique({
+      where: { id: rfpId },
+      include: {
+        collaborators: {
+          where: {
+            userId,
+            status: "ACCEPTED",
+          },
+        },
+      },
+    });
+
+    if (!rfp) throw new Error("RFP not found");
+    if (rfp.userId !== userId && rfp.collaborators.length === 0) {
+      throw new Error("Unauthorized: You don't have access to this RFP");
+    }
+
+    const activities = await prisma.rFPActivity.findMany({
+      where: { rfpId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50, // Limit to last 50 activities
+    });
+
+    const baseUrl = process.env.BASE_URL || "http://localhost:5001";
+
+    return activities.map((activity) => ({
+      id: activity.id,
+      userId: activity.user.id,
+      userName: activity.user.name,
+      userAvatar: activity.user.avatar ? `${baseUrl}${activity.user.avatar}` : null,
+      action: activity.action,
+      details: activity.details,
+      createdAt: activity.createdAt.toISOString(),
+    }));
+  }
+
+  static async createActivity(rfpId: number, userId: number, action: string, details?: string) {
+    // Check if user has access (owner or accepted collaborator)
+    const rfp = await prisma.rFP.findUnique({
+      where: { id: rfpId },
+      include: {
+        collaborators: {
+          where: {
+            userId,
+            status: "ACCEPTED",
+          },
+        },
+      },
+    });
+
+    if (!rfp) throw new Error("RFP not found");
+    if (rfp.userId !== userId && rfp.collaborators.length === 0) {
+      throw new Error("Unauthorized: You don't have access to this RFP");
+    }
+
+    const activity = await prisma.rFPActivity.create({
+      data: {
+        rfpId,
+        userId,
+        action,
+        details: details || null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    const baseUrl = process.env.BASE_URL || "http://localhost:5001";
+
+    return {
+      id: activity.id,
+      userId: activity.user.id,
+      userName: activity.user.name,
+      userAvatar: activity.user.avatar ? `${baseUrl}${activity.user.avatar}` : null,
+      action: activity.action,
+      details: activity.details,
+      createdAt: activity.createdAt.toISOString(),
+    };
   }
 }

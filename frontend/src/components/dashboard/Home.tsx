@@ -1,12 +1,12 @@
 // 
-// Dashboard Home - Customer Dashboard
+// Dashboard Home
 // 
 
-import { useState } from "react";
-import { Row, Col, Button } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Row, Col, Button, Spinner } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { LayoutDashboard } from "lucide-react";
+import api from "../../api/axios";
 
 import { 
   DollarSign, 
@@ -36,12 +36,36 @@ const Home = () => {
   const { user, initialized } = useAuth();  
   const ITEMS_PER_PAGE = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  const navigate = useNavigate();
+  const [rfps, setRfps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchRFPs();
+    }
+  }, [user?.id]);
+
+  const fetchRFPs = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/rfps");
+      const userRfps = res.data.filter((r: any) => r.userId === user?.id);
+      setRfps(userRfps);
+    } catch (err) {
+      console.error("Failed to fetch RFPs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!initialized) return <Loader />;
   if (!user) return <div className="no-user">No user found. Please log in.</div>;
 
-  // Mock data - replace with actual API calls
+  // Calculate stats from real data
+  const draftCount = rfps.filter((r: any) => r.status === "DRAFT").length;
+  const analyzedCount = rfps.filter((r: any) => r.status === "ANALYZED").length;
+  const completedCount = rfps.filter((r: any) => r.status === "COMPLETED").length;
+
   const atAGlanceData = [
   {
     title: "AI Credits",
@@ -54,7 +78,7 @@ const Home = () => {
   },
   {
     title: "Draft Proposals",
-    value: "12",
+    value: draftCount.toString(),
     description: "Proposals currently in draft",
     icon: FileText,
     action: "View Drafts",
@@ -62,21 +86,21 @@ const Home = () => {
     color: "#3b82f6",
   },
   {
-    title: "Submitted Proposals",
-    value: "8",
-    description: "Proposals submitted for review",
+    title: "Analyzed Proposals",
+    value: analyzedCount.toString(),
+    description: "Proposals analyzed and ready",
     icon: Send,
-    action: "View Submitted",
-    actionKey: "submitted",
+    action: "View Analyzed",
+    actionKey: "analyzed",
     color: "#8b5cf6",
   },
   {
-    title: "Approved Proposals",
-    value: "5",
-    description: "Proposals approved and active",
+    title: "Completed Proposals",
+    value: completedCount.toString(),
+    description: "Proposals completed",
     icon: CheckCircle2,
-    action: "View Approved",
-    actionKey: "approved",
+    action: "View Completed",
+    actionKey: "completed",
     color: "#10b981",
   },
 ];
@@ -104,18 +128,16 @@ const Home = () => {
     { icon: CheckCircle2, text: "Approved 'Website Redesign Proposal'", time: "3 days ago" },
   ];
 
-  const recentProposals = [
-    { title: "Project Alpha", status: "Approved", lastUpdated: "2024-01-15", actions: "" },
-    { title: "Marketing Campaign", status: "Submitted", lastUpdated: "2024-01-14", actions: "" },
-    { title: "Budget Review Q4", status: "Draft", lastUpdated: "2024-01-13", actions: "" },
-    { title: "Website Redesign", status: "Approved", lastUpdated: "2024-01-12", actions: "" },
-    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
-    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
-    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
-    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
-    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
-    { title: "Mobile App Update", status: "Draft", lastUpdated: "2024-01-11", actions: "" },
-  ];
+  // Use real RFP data
+  const recentProposals = rfps
+    .sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
+    .map((rfp: any) => ({
+      id: rfp.id,
+      title: rfp.title,
+      status: rfp.status,
+      lastUpdated: new Date(rfp.updatedAt || rfp.createdAt).toLocaleDateString(),
+      actions: "",
+    }));
 
   const totalProposals = recentProposals.length;
   const totalPages = Math.ceil(totalProposals / ITEMS_PER_PAGE);
@@ -126,35 +148,55 @@ const Home = () => {
   const paginatedProposals = recentProposals.slice(startIndex, endIndex);
 
   const handleGlanceAction = (key: string) => {
-  switch (key) {
-    case "credits":
-      navigate("/dashboard?tab=credits");
-      break;
+    switch (key) {
+      case "credits":
+        window.location.href = "/dashboard?tab=credits";
+        break;
 
-    case "draft":
-      navigate("/dashboard?tab=myrfps&status=Draft");
-      break;
+      case "draft":
+        window.location.href = "/dashboard?tab=myrfps";
+        break;
 
-    case "submitted":
-      navigate("/dashboard?tab=myrfps&status=Submitted");
-      break;
+      case "analyzed":
+        window.location.href = "/dashboard?tab=myrfps";
+        break;
 
-    case "approved":
-      navigate("/dashboard?tab=myrfps&status=Approved");
-      break;
+      case "completed":
+        window.location.href = "/dashboard?tab=myrfps";
+        break;
 
-    default:
-      break;
-  }
-};
+      default:
+        break;
+    }
+  };
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case "new-proposal":
+        window.location.href = "/dashboard?tab=proposalbuilder";
+        break;
+      case "import-document":
+        window.location.href = "/dashboard?tab=proposalbuilder";
+        break;
+      case "view-all":
+        window.location.href = "/dashboard?tab=myrfps";
+        break;
+      default:
+        break;
+    }
+  };
 
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
-    case "Approved":
+    case "COMPLETED":
       return "badge-success";
-    case "Submitted":
+    case "ANALYZED":
       return "badge-primary";
-    case "Draft":
+    case "IN_PROGRESS":
+      return "badge-info";
+    case "PENDING":
+      return "badge-warning";
+    case "DRAFT":
       return "badge-secondary";
     default:
       return "badge-secondary";
@@ -209,15 +251,24 @@ const getStatusBadgeClass = (status: string) => {
       <section className="dashboard-section">
         <h2 className="section-title">Quick Actions</h2>
         <div className="quick-actions">
-          <Button className="quick-action-btn primary">
+          <Button 
+            className="quick-action-btn primary"
+            onClick={() => handleQuickAction("new-proposal")}
+          >
             <Plus size={18} className="me-2" />
             New Proposal
           </Button>
-          <Button className="quick-action-btn secondary">
+          <Button 
+            className="quick-action-btn secondary"
+            onClick={() => handleQuickAction("import-document")}
+          >
             <Upload size={18} className="me-2" />
             Import Document
           </Button>
-          <Button className="quick-action-btn secondary">
+          <Button 
+            className="quick-action-btn secondary"
+            onClick={() => handleQuickAction("view-all")}
+          >
             <Eye size={18} className="me-2" />
             View All Proposals
           </Button>
@@ -312,32 +363,55 @@ const getStatusBadgeClass = (status: string) => {
             <div className="proposals-card">
               <h3 className="proposals-card__title">Recent Proposals</h3>
               <p className="proposals-card__subtitle">A list of your most recently updated proposals.</p>
-              <div className="proposals-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Status</th>
-                      <th>Last Updated</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedProposals.map((proposal, index) => (
-                      <tr key={index}>
-                        <td>{proposal.title}</td>
-                        <td>
-                          <span className={`badge ${getStatusBadgeClass(proposal.status)}`}>
-                            {proposal.status}
-                          </span>
-                        </td>
-                        <td>{proposal.lastUpdated}</td>
-                        <td>{proposal.actions}</td>
+              {loading ? (
+                <div className="text-center py-4">
+                  <Spinner animation="border" />
+                </div>
+              ) : (
+                <div className="proposals-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                        <th>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {paginatedProposals.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="text-center py-4 text-muted">
+                            No proposals yet. Create your first RFP!
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedProposals.map((proposal, index) => (
+                          <tr key={proposal.id || index}>
+                            <td>{proposal.title}</td>
+                            <td>
+                              <span className={`badge ${getStatusBadgeClass(proposal.status)}`}>
+                                {proposal.status}
+                              </span>
+                            </td>
+                            <td>{proposal.lastUpdated}</td>
+                            <td>
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => window.location.href = "/dashboard?tab=myrfps"}
+                                className="p-0"
+                              >
+                                View
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
               <div className="proposals-pagination">
                 <span>
                   {startIndex + 1}-

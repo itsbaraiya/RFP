@@ -32,8 +32,8 @@ const RFPUpload: React.FC<RFPUploadProps> = ({
 
     const formData = new FormData();
 
-    // ⭐ FIX 1 — backend expects "file", NOT "rfp"
-    formData.append("file", file);
+    // Backend expects "rfp" as the field name
+    formData.append("rfp", file);
 
     try {
       setIsUploading(true);

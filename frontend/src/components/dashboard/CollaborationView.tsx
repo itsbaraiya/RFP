@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Row, Col, Button, Spinner, Alert } from "react-bootstrap";
+import { Row, Col, Button, Spinner } from "react-bootstrap";
 import {
-  Clock,
   Share2,
   History,
   Send,
@@ -29,6 +28,16 @@ interface Comment {
   createdAt: string;
 }
 
+interface Activity {
+  id: number;
+  userId: number;
+  userName: string;
+  userAvatar?: string;
+  action: string;
+  details?: string;
+  createdAt: string;
+}
+
 interface RFPData {
   id: number;
   title: string;
@@ -50,42 +59,28 @@ interface CollaborationViewProps {
 const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) => {
   const [activeTab, setActiveTab] = useState<"comments" | "activity">("comments");
   const [comments, setComments] = useState<Comment[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingActivities, setLoadingActivities] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
   useEffect(() => {
     fetchComments();
+    fetchActivities();
     generateAISuggestion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rfp.id]);
 
   const fetchComments = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API endpoint when backend is ready
-      // const res = await api.get(`/rfps/${rfp.id}/comments`);
-      // setComments(res.data || []);
-      
-      // Mock data for now
-      setComments([
-        {
-          id: 1,
-          userId: 2,
-          userName: "Sarah Adams",
-          content: "Looks great, John! Just a minor suggestion on the budget section - perhaps we can break down the cloud hosting costs a bit more?",
-          createdAt: new Date(Date.now() - 2 * 60000).toISOString(),
-        },
-        {
-          id: 2,
-          userId: 3,
-          userName: "Michael Kim",
-          content: "Agreed. Also, the executive summary could be more concise. The AI's suggestion about the timeline is spot on.",
-          createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
-        },
-      ]);
+      const res = await api.get(`/rfps/${rfp.id}/comments`);
+      setComments(res.data || []);
     } catch (err: any) {
       console.error("Failed to fetch comments:", err);
+      setComments([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -107,24 +102,47 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
 
     setSubmittingComment(true);
     try {
-      // TODO: Replace with actual API endpoint when backend is ready
-      // await api.post(`/rfps/${rfp.id}/comments`, { content: newComment });
-      
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const newCommentObj: Comment = {
-        id: Date.now(),
-        userId: user.id || 0,
-        userName: user.name || "You",
-        content: newComment,
-        createdAt: new Date().toISOString(),
-      };
-
-      setComments([newCommentObj, ...comments]);
+      const res = await api.post(`/rfps/${rfp.id}/comments`, { content: newComment });
+      // Add the new comment to the top of the list
+      setComments([res.data, ...comments]);
       setNewComment("");
+      // Refresh activities to show the new comment activity
+      fetchActivities();
     } catch (err: any) {
       console.error("Failed to submit comment:", err);
+      alert(err?.response?.data?.error || "Failed to add comment. Please try again.");
     } finally {
       setSubmittingComment(false);
+    }
+  };
+
+  const fetchActivities = async () => {
+    setLoadingActivities(true);
+    try {
+      const res = await api.get(`/rfps/${rfp.id}/activities`);
+      setActivities(res.data || []);
+    } catch (err: any) {
+      console.error("Failed to fetch activities:", err);
+      setActivities([]); // Set empty array on error
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
+
+  const getActivityText = (activity: Activity) => {
+    switch (activity.action) {
+      case "commented":
+        return "added a comment";
+      case "added_collaborator":
+        return activity.details || "added a collaborator";
+      case "accepted_invite":
+        return "accepted the collaboration invitation";
+      case "updated":
+        return activity.details || "updated the document";
+      case "status_changed":
+        return "changed the status";
+      default:
+        return activity.action;
     }
   };
 
@@ -293,7 +311,7 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
                     <Spinner animation="border" size="sm" />
                   </div>
                 ) : comments.length === 0 ? (
-                  <div className="text-center py-4 text-muted">
+                  <div className="text-center py-4">
                     <p>No comments yet. Start the conversation!</p>
                   </div>
                 ) : (
@@ -304,16 +322,9 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
                       
                       return (
                         <div key={comment.id} className={`comment ${isCurrentUser ? "comment--own" : ""}`}>
-                          <div className="comment__avatar">
-                            {comment.userAvatar ? (
-                              <img src={comment.userAvatar} alt={comment.userName} />
-                            ) : (
-                              <span>{getInitials(comment.userName)}</span>
-                            )}
-                          </div>
                           <div className="comment__content">
                             <div className="comment__header">
-                              <strong>{comment.userName}</strong>
+                              <span className="comment__author">{comment.userName}</span>
                               <span className="comment__time">{formatTimeAgo(comment.createdAt)}</span>
                             </div>
                             <p className="comment__text">{comment.content}</p>
@@ -348,41 +359,28 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
             {/* Activity Tab */}
             {activeTab === "activity" && (
               <div className="collaboration-hub__content">
-                <div className="activity-list">
-                  <div className="activity-item">
-                    <div className="activity-item__icon">
-                      <Clock size={16} />
-                    </div>
-                    <div className="activity-item__content">
-                      <p>
-                        <strong>John Doe</strong> updated the document
-                      </p>
-                      <span className="activity-item__time">2 hours ago</span>
-                    </div>
+                {loadingActivities ? (
+                  <div className="text-center py-4">
+                    <Spinner animation="border" size="sm" />
                   </div>
-                  <div className="activity-item">
-                    <div className="activity-item__icon">
-                      <Share2 size={16} />
-                    </div>
-                    <div className="activity-item__content">
-                      <p>
-                        <strong>Sarah Adams</strong> was added as a collaborator
-                      </p>
-                      <span className="activity-item__time">1 day ago</span>
-                    </div>
+                ) : activities.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p>No activity yet.</p>
                   </div>
-                  <div className="activity-item">
-                    <div className="activity-item__icon">
-                      <Clock size={16} />
-                    </div>
-                    <div className="activity-item__content">
-                      <p>
-                        <strong>Michael Kim</strong> reviewed the document
-                      </p>
-                      <span className="activity-item__time">2 days ago</span>
-                    </div>
+                ) : (
+                  <div className="activity-list">
+                    {activities.map((activity) => (
+                      <div key={activity.id} className="activity-item">
+                        <div className="activity-item__content">
+                          <p className="activity-item__text">
+                            <strong>{activity.userName}</strong> {getActivityText(activity)}
+                          </p>
+                          <span className="activity-item__time">{formatTimeAgo(activity.createdAt)}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -393,4 +391,5 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
 };
 
 export default CollaborationView;
+
 

@@ -22,6 +22,8 @@ model User {
   rfps              RFP[]
   rfpCollaborations RFPCollaborator[]
   passwordResets    PasswordResetToken[]
+  rfpComments       RFPComment[]
+  rfpActivities     RFPActivity[]
 }
 
 model RFP {
@@ -37,6 +39,8 @@ model RFP {
   questions     Question[]
   user          User              @relation(fields: [userId], references: [id])
   collaborators RFPCollaborator[]
+  comments      RFPComment[]
+  activities    RFPActivity[]
 }
 
 model Question {
@@ -73,6 +77,7 @@ enum Role {
 }
 
 enum RFPStatus {
+  DRAFT
   PENDING
   ANALYZED
   IN_PROGRESS
@@ -96,4 +101,33 @@ enum CollaboratorStatus {
   INVITED
   ACCEPTED
   REVOKED
+}
+
+model RFPComment {
+  id        Int      @id @default(autoincrement())
+  rfpId     Int
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rfp       RFP      @relation(fields: [rfpId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([rfpId])
+  @@index([userId])
+}
+
+model RFPActivity {
+  id        Int       @id @default(autoincrement())
+  rfpId     Int
+  userId    Int
+  action    String    // e.g., "updated", "commented", "added_collaborator", "status_changed"
+  details   String?   // Additional details about the action
+  createdAt DateTime  @default(now())
+  rfp       RFP       @relation(fields: [rfpId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([rfpId])
+  @@index([userId])
+  @@index([createdAt])
 }

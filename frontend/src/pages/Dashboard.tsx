@@ -52,6 +52,13 @@ const Dashboard = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
+    
+    // Handle tab from URL query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
   }, []);
 
   const handleLogout = () => {

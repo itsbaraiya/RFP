@@ -29,6 +29,7 @@ const ForgotPassword: React.FC = () => {
 
     setLoading(true);
     try {
+      // TODO: Update this endpoint when backend is ready
       await api.post("/auth/forgot-password", { email });
       setSuccess(true);
     } catch (err: any) {

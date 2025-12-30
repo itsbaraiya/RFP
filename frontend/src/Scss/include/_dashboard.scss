@@ -1528,10 +1528,10 @@
   }
 
   .ai-message {
+    position: relative;
     padding: 1rem;
     border-radius: 8px;
     max-width: 85%;
-    position: relative;
 
     &--assistant {
       background: rgba(255, 255, 255, 0.05);
@@ -1554,44 +1554,30 @@
 
     &__copy {
       position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
+      top: 8px;
+      right: 8px;
       background: rgba(255, 255, 255, 0.1);
       border: none;
-      border-radius: 6px;
-      padding: 0.5rem;
+      border-radius: 4px;
+      padding: 4px 6px;
+      color: rgba(255, 255, 255, 0.7);
       cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255, 255, 255, 0.7);
-      transition: all 0.2s ease;
-      opacity: 0;
+      width: 24px;
+      height: 24px;
 
       &:hover {
         background: rgba(255, 255, 255, 0.2);
         color: #fff;
-        transform: scale(1.1);
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
-
-      svg {
-        width: 14px;
-        height: 14px;
       }
     }
 
-    &--assistant:hover .ai-message__copy {
+    &:hover &__copy {
       opacity: 1;
-    }
-
-    p {
-      color: #fff;
-      margin: 0;
-      line-height: 1.6;
     }
   }
 

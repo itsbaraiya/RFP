@@ -16,10 +16,12 @@ import {
   Users,
   Trash2,
   ArrowRight,
+  Download,
 } from "lucide-react";
 import api from "../../api/axios";
 import Lottie from "lottie-react";
 import emptyAnimation from "../../assets/lottie/empty.json";
+import { openFile, downloadFile } from "../../utils/fileUtils";
 
 
 interface MyRFPsProps {
@@ -195,9 +197,14 @@ const MyRFPs: React.FC<MyRFPsProps> = ({ setActiveTab }) => {
 
   // ---------------- View File helper ----------------
   const handleViewFile = (rfp: any) => {
-    const relativePath = rfp.filePath.replace("uploads/", "");
-    window.open(`/files/${relativePath}`, "_blank");
- };
+    openFile(rfp.filePath);
+  };
+
+  // ---------------- Download File helper ----------------
+  const handleDownloadFile = async (rfp: any) => {
+    const fileName = `${rfp.title.replace(/[^a-z0-9]/gi, "_")}.pdf`;
+    await downloadFile(rfp.filePath, fileName);
+  };
 
 
   return (
@@ -269,6 +276,10 @@ const MyRFPs: React.FC<MyRFPsProps> = ({ setActiveTab }) => {
                     View File
                   </Button>
 
+                  <Button variant="outline-primary" size="sm" onClick={() => handleDownloadFile(rfp)}>
+                    <Download size={14} className="me-1" /> Download
+                  </Button>
+
                   <Button variant="dark" size="sm" onClick={() => handleCollaboratorClick(rfp)}>
                     <Users size={14} className="me-1" /> Collaborators
                   </Button>
@@ -300,7 +311,7 @@ const MyRFPs: React.FC<MyRFPsProps> = ({ setActiveTab }) => {
 
 
       {/* Collaborators Modal */}
-      <Modal show={showCollaboratorModal} onHide={() => setShowCollaboratorModal(false)} centered>
+      <Modal show={showCollaboratorModal} size="lg" onHide={() => setShowCollaboratorModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
             Collaborators — <span className="text-primary">{selectedRFP?.title}</span>
@@ -322,6 +333,9 @@ const MyRFPs: React.FC<MyRFPsProps> = ({ setActiveTab }) => {
                   </div>
 
                   <div className="d-flex align-items-center gap-2">
+                    <Badge bg={col.status === "ACCEPTED" ? "success" : col.status === "INVITED" ? "warning" : "secondary"}>
+                      {col.status === "ACCEPTED" ? "Active" : col.status === "INVITED" ? "Pending" : col.status || "Collaborator"}
+                    </Badge>
                     <Badge bg="light" text="dark">
                       {col.role || "Collaborator"}
                     </Badge>

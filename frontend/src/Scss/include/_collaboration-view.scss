@@ -1,88 +1,131 @@
-// Collaboration View Styles
-
 .collaboration-view {
   height: calc(100vh - 80px);
+  background: #1a1a2e;
+  color: #fff;
   overflow: hidden;
-  background: #0f0f1e;
 
-  &__editor,
-  &__hub {
+  .row {
     height: 100%;
-    overflow-y: auto;
   }
 
   &__editor {
+    height: 100%;
+    overflow-y: auto;
     background: #1a1a2e;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 !important;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
   }
 
   &__hub {
-    background: #1f1f2e;
+    height: 100%;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0 !important;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
   }
 }
 
-// Document Editor
 .document-editor {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 24px;
 
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 24px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.02);
   }
 
   &__title-section {
     flex: 1;
 
     h2 {
-      color: #fff;
+      margin: 0 0 8px 0;
       font-size: 24px;
       font-weight: 600;
-      margin: 0 0 8px 0;
+      color: #fff;
     }
   }
 
   &__meta {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 14px;
+    font-size: 13px;
+    color: #9ca3af;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
   }
 
   &__actions {
     display: flex;
-    gap: 12px;
     align-items: center;
+    gap: 8px;
+
+    .btn {
+      white-space: nowrap;
+    }
   }
 
   &__content {
     flex: 1;
-    padding: 24px;
     overflow-y: auto;
+    padding-right: 8px;
   }
 
   &__actions-bottom {
     display: flex;
     gap: 12px;
-    padding: 24px;
+    margin-top: 24px;
+    padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.02);
   }
 }
 
 .document-content {
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.8;
-  font-size: 15px;
-
   h3 {
-    color: #fff;
     font-size: 20px;
     font-weight: 600;
-    margin: 32px 0 16px 0;
+    margin: 24px 0 12px 0;
+    color: #fff;
 
     &:first-child {
       margin-top: 0;
@@ -90,6 +133,9 @@
   }
 
   p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 16px;
   }
 
@@ -98,97 +144,110 @@
     padding-left: 24px;
 
     li {
+      font-size: 15px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.8);
       margin-bottom: 8px;
     }
   }
 }
 
-// AI Suggestion Box
 .ai-suggestion-box {
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   margin: 24px 0;
 
   &__header {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #3b82f6;
-    font-weight: 600;
     margin-bottom: 12px;
-    font-size: 14px;
+    font-weight: 600;
+    color: #3b82f6;
+
+    svg {
+      color: #3b82f6;
+    }
   }
 
   &__content {
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 12px 0;
+    font-size: 14px;
     line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 12px;
   }
 
   &__action {
     color: #3b82f6;
     padding: 0;
-    text-decoration: none;
+    font-size: 13px;
     font-weight: 500;
-    display: inline-flex;
-    align-items: center;
+    text-decoration: none;
 
     &:hover {
       color: #60a5fa;
+      text-decoration: underline;
     }
   }
 }
 
-// Collaboration Hub
 .collaboration-hub {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: rgba(255, 255, 255, 0.02);
 
   &__header {
-    padding: 24px;
+    padding: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
     h3 {
       color: #fff;
-      font-size: 20px;
+      font-size: 1.25rem;
       font-weight: 600;
       margin: 0;
     }
   }
 
+  *:not(h3) {
+    font-size: 15px;
+    line-height: 18px;
+  }
+
   &__collaborators {
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 1.5rem;
+    margin-bottom: 1rem;
   }
 
   &__label {
-    color: rgba(255, 255, 255, 0.7);
     font-size: 13px;
-    margin: 0 0 12px 0;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
   }
 
   &__tabs {
     display: flex;
+    gap: 0;
+    padding: 0 1.5rem;
+    margin-bottom: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
     .tab {
-      flex: 1;
-      padding: 16px;
-      background: none;
+      padding: 10px 16px;
+      background: transparent;
       border: none;
       color: rgba(255, 255, 255, 0.6);
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
       border-bottom: 2px solid transparent;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      margin-bottom: -1px;
 
       &:hover {
-        color: rgba(255, 255, 255, 0.8);
-        background: rgba(255, 255, 255, 0.02);
+        color: #fff;
       }
 
       &.active {
@@ -201,37 +260,37 @@
   &__content {
     flex: 1;
     overflow-y: auto;
-    padding: 24px;
+    padding: 0 1.5rem 1.5rem;
     display: flex;
     flex-direction: column;
   }
 }
 
-// Collaborator Avatars
 .collaborator-avatars {
   display: flex;
-  gap: -8px;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .collaborator-avatar-small {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 2px solid #1f1f2e;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(59, 130, 246, 0.2);
   color: #3b82f6;
   font-weight: 600;
-  font-size: 14px;
-  margin-left: -8px;
-  position: relative;
-  z-index: 1;
+  font-size: 11px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-  &:first-child {
-    margin-left: 0;
+  &:hover {
+    transform: scale(1.1);
+    border-color: #3b82f6;
   }
 
   img {
@@ -243,50 +302,40 @@
 
   &.collaborator-avatar-more {
     background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 }
 
-// Comments
 .comments-list {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 1rem;
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1rem;
 }
 
 .comment {
-  display: flex;
-  gap: 12px;
+  padding: 1rem;
+  border-radius: 8px;
+  max-width: 85%;
+  position: relative;
+  min-width: 250px;
 
   &--own {
-    .comment__avatar {
-      background: rgba(234, 179, 8, 0.2);
-      color: #eab308;
-    }
+    background: rgba(37, 99, 235, 0.2);
+    align-self: flex-end;
+    margin-left: auto;
+  }
+
+  &:not(.comment--own) {
+    background: rgba(255, 255, 255, 0.05);
+    align-self: flex-start;
   }
 
   &__avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(59, 130, 246, 0.2);
-    color: #3b82f6;
-    font-weight: 600;
-    font-size: 14px;
-    flex-shrink: 0;
-
-    img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
+    display: none; // Hide avatar to match AI assistant style
   }
 
   &__content {
@@ -296,116 +345,120 @@
   &__header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
     margin-bottom: 4px;
+  }
 
-    strong {
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-    }
+  &__author {
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
   }
 
   &__time {
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.5);
-    font-size: 12px;
   }
 
   &__text {
-    color: rgba(255, 255, 255, 0.8);
+    font-size: 15px;
+    line-height: 1.6;
+    color: #fff;
     margin: 0;
-    line-height: 1.5;
-    font-size: 14px;
   }
 }
 
 .comment-input {
   display: flex;
-  gap: 8px;
-  padding-top: 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 5px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  margin-top: auto;
 
   input {
     flex: 1;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    padding: 12px 16px;
+    padding: 0.75rem 1rem;
     color: #fff;
-    font-size: 14px;
     outline: none;
+    font-size: 15px;
 
     &::placeholder {
       color: rgba(255, 255, 255, 0.5);
     }
 
     &:focus {
-      border-color: #3b82f6;
+      border-color: #2563eb;
     }
   }
 
-  button {
-    padding: 12px;
+  .btn {
+    padding: 0.75rem;
     border-radius: 8px;
-    min-width: 44px;
-    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 40px;
+    height: 40px;
   }
 }
 
-// Activity
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .activity-item {
-  display: flex;
-  gap: 12px;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  align-self: flex-start;
+  max-width: 85%;
 
   &__icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.7);
-    flex-shrink: 0;
+    display: none; // Hide icon to match AI assistant style
   }
 
   &__content {
     flex: 1;
+  }
 
-    p {
-      color: rgba(255, 255, 255, 0.9);
-      margin: 0 0 4px 0;
-      font-size: 14px;
+  &__text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #fff;
+    margin: 0 0 4px 0;
 
-      strong {
-        color: #fff;
-        font-weight: 600;
-      }
+    strong {
+      color: #fff;
+      font-weight: 600;
     }
   }
 
   &__time {
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.5);
-    font-size: 12px;
   }
 }
 
-// Responsive
-@media (max-width: 992px) {
+// Responsive adjustments
+@media (max-width: 991px) {
   .collaboration-view {
-    &__editor,
+    &__editor {
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      height: 50vh;
+    }
+
     &__hub {
-      height: auto;
-      min-height: 50vh;
+      height: 50vh;
     }
   }
 }

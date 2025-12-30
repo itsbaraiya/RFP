@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import RFPUpload from "../RFPUpload";
 import jsPDF from "jspdf";
+import { openFile, downloadFile } from "../../utils/fileUtils";
 
 const ProposalBuilder: React.FC = () => {  
   const navigate = useNavigate();
@@ -31,6 +32,8 @@ const ProposalBuilder: React.FC = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [generatedRFP, setGeneratedRFP] = useState<{ id: number; title: string; filePath: string } | null>(null);
 
   const steps = [
     {
@@ -90,6 +93,73 @@ const ProposalBuilder: React.FC = () => {
     setCurrentStep(4);
   };
 
+  const handleSaveDraft = async () => {
+    if (!formData.title) {
+      setError("Please enter at least a title to save as draft.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+    setMessage("Saving draft...");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication required.");
+
+      let rfpResponse;
+
+      if (creationType === "upload" && fileData) {
+        // Update existing RFP as draft
+        rfpResponse = await api.put(`/rfps/${fileData.id}`, {
+          title: formData.title,
+          description: formData.description || "",
+          category: formData.category || "",
+          status: "DRAFT",
+        });
+        setGeneratedRFP({
+          id: fileData.id,
+          title: formData.title,
+          filePath: fileData.filePath,
+        });
+      } else if (creationType === "ai") {
+        // Create new RFP as draft (without generating PDF)
+        rfpResponse = await api.post("/rfps/create-draft", {
+          title: formData.title,
+          description: formData.description || "",
+          category: formData.category || "",
+          aiPrompt: formData.aiPrompt || "",
+        });
+        setGeneratedRFP({
+          id: rfpResponse.data.rfp.id,
+          title: rfpResponse.data.rfp.title,
+          filePath: rfpResponse.data.rfp.filePath || "",
+        });
+      } else {
+        // No creation type selected, create minimal draft
+        rfpResponse = await api.post("/rfps/create-draft", {
+          title: formData.title,
+          description: formData.description || "",
+          category: formData.category || "",
+        });
+        setGeneratedRFP({
+          id: rfpResponse.data.rfp.id,
+          title: rfpResponse.data.rfp.title,
+          filePath: rfpResponse.data.rfp.filePath || "",
+        });
+      }
+
+      setMessage("✅ Draft saved successfully!");
+      setShowSuccessModal(true);
+    } catch (err: any) {
+      console.error("Save draft error:", err.response?.data || err.message);
+      setError(err.response?.data?.error || "Failed to save draft. Please try again.");
+      setMessage("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!creationType) {
       setError("Please select a creation method.");
@@ -116,31 +186,40 @@ const ProposalBuilder: React.FC = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Authentication required.");
 
+      let rfpResponse;
+
       if (creationType === "upload" && fileData) {
-        await api.post(
-          `/rfps/${fileData.id}/analyze`,
-          {
-            title: formData.title,
-            description: formData.description,
-            category: formData.category,
-            filePath: fileData.filePath,
-          }
-        );
-        setMessage("✅ RFP uploaded and analyzed successfully!");
+        // First update the RFP with title, description, category
+        await api.put(`/rfps/${fileData.id}`, {
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          status: "PENDING",
+        });
+        
+        // Then analyze
+        rfpResponse = await api.post(`/rfps/${fileData.id}/analyze`);
+        setGeneratedRFP({
+          id: fileData.id,
+          title: formData.title,
+          filePath: fileData.filePath,
+        });
       } else if (creationType === "ai") {
-        await api.post("/rfps/generate", {
+        rfpResponse = await api.post("/rfps/generate", {
           title: formData.title,
           description: formData.description,
           category: formData.category,
           prompt: formData.aiPrompt,
         });
-        setMessage("✅ AI-generated RFP created successfully!");
+        setGeneratedRFP({
+          id: rfpResponse.data.rfp.id,
+          title: rfpResponse.data.rfp.title,
+          filePath: rfpResponse.data.rfp.filePath,
+        });
       }
 
-      setTimeout(() => {
-        navigate("/dashboard");
-        window.location.reload();
-      }, 1500);
+      setMessage("✅ RFP created successfully!");
+      setShowSuccessModal(true);
     } catch (err: any) {
       console.error("RFP submit error:", err.response?.data || err.message);
       setError(err.response?.data?.error || "Failed to create RFP. Please try again.");
@@ -624,6 +703,14 @@ const ProposalBuilder: React.FC = () => {
                       <Button variant="outline-secondary" onClick={handlePreviousStep} disabled={loading}>
                         Previous
                       </Button>
+                      <Button 
+                        variant="outline-primary" 
+                        onClick={handleSaveDraft} 
+                        disabled={loading}
+                        className="me-2"
+                      >
+                        {loading ? "Saving..." : "Save as Draft"}
+                      </Button>
                       <Button variant="success" onClick={handleSubmit} disabled={loading}>
                         {loading ? "Processing..." : "Submit RFP"}
                       </Button>
@@ -669,10 +756,6 @@ const ProposalBuilder: React.FC = () => {
                   <Eye size={16} className="me-2" />
                   Full Preview
                 </Button>
-                <Button variant="primary" onClick={handleDownloadPDF}>
-                  <Download size={16} className="me-2" />
-                  Download PDF
-                </Button>
               </div>
             </div>
           </div>
@@ -691,7 +774,7 @@ const ProposalBuilder: React.FC = () => {
                   className={`ai-message ai-message--${message.role}`}
                 >
                   <div className="ai-message__content">
-                    <p>{message.content}</p>
+                  <p>{message.content}</p>
                   </div>
                   {message.role === "assistant" && (
                     <button
@@ -729,7 +812,7 @@ const ProposalBuilder: React.FC = () => {
                 {aiLoading ? (
                   <Spinner as="span" animation="border" size="sm" />
                 ) : (
-                  <Send size={18} />
+                <Send size={18} />
                 )}
               </Button>
             </div>
@@ -752,6 +835,135 @@ const ProposalBuilder: React.FC = () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowPreviewModal(false)}>Close</Button>
           <Button variant="success" onClick={handleDownloadPDF}>Download PDF</Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal 
+        show={showSuccessModal} 
+        onHide={() => {
+          setShowSuccessModal(false);
+          // Reset form when modal closes
+          setCurrentStep(1);
+          setCreationType("");
+          setFileData(null);
+          setFormData({
+            title: "",
+            description: "",
+            category: "",
+            aiPrompt: "",
+          });
+          setError("");
+          setMessage("");
+          setPdfPreviewUrl(null);
+          setAiMessages([
+            {
+              role: "assistant",
+              content: "Hello! I am your AI Assistant. How can I help you with your proposal today?",
+            },
+          ]);
+          setUserMessage("");
+        }} 
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <CheckCircle2 size={24} className="text-success me-2" />
+            RFP Created Successfully!
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center py-3">
+            <p className="mb-4">Your RFP <strong>"{generatedRFP?.title}"</strong> has been created and is ready to use.</p>
+            <div className="d-flex flex-column gap-2">
+              {generatedRFP && (
+                <>
+                  <Button 
+                    variant="primary" 
+                    onClick={() => {
+                      if (generatedRFP?.filePath) {
+                        openFile(generatedRFP.filePath);
+                      }
+                    }}
+                  >
+                    <Eye size={18} className="me-2" />
+                    View Generated RFP
+                  </Button>
+                  <Button 
+                    variant="outline-primary" 
+                    onClick={async () => {
+                      if (generatedRFP?.filePath) {
+                        const fileName = `${generatedRFP.title.replace(/[^a-z0-9]/gi, "_")}.pdf`;
+                        await downloadFile(generatedRFP.filePath, fileName);
+                      }
+                    }}
+                  >
+                    <Download size={18} className="me-2" />
+                    Download PDF
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              setShowSuccessModal(false);
+              // Reset form
+              setCurrentStep(1);
+              setCreationType("");
+              setFileData(null);
+              setFormData({
+                title: "",
+                description: "",
+                category: "",
+                aiPrompt: "",
+              });
+              setError("");
+              setMessage("");
+              setPdfPreviewUrl(null);
+              setAiMessages([
+                {
+                  role: "assistant",
+                  content: "Hello! I am your AI Assistant. How can I help you with your proposal today?",
+                },
+              ]);
+              setUserMessage("");
+            }}
+          >
+            Create Another RFP
+          </Button>
+          <Button 
+            variant="success" 
+            onClick={() => {
+              setShowSuccessModal(false);
+              // Reset form
+              setCurrentStep(1);
+              setCreationType("");
+              setFileData(null);
+              setFormData({
+                title: "",
+                description: "",
+                category: "",
+                aiPrompt: "",
+              });
+              setError("");
+              setMessage("");
+              setPdfPreviewUrl(null);
+              setAiMessages([
+                {
+                  role: "assistant",
+                  content: "Hello! I am your AI Assistant. How can I help you with your proposal today?",
+                },
+              ]);
+              setUserMessage("");
+              navigate("/dashboard");
+            }}
+          >
+            Go to Dashboard
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>

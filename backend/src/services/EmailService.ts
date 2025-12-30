@@ -42,7 +42,9 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<void> {
     if (!this.isConfigured()) {
-      throw new Error("Email service is not configured. Please set SMTP credentials in .env file");
+      const errorMsg = "Email service is not configured. Please set SMTP_USER and SMTP_PASSWORD in .env file";
+      console.error("❌", errorMsg);
+      throw new Error(errorMsg);
     }
 
     try {
@@ -164,7 +166,86 @@ class EmailService {
 
     await this.sendEmail({ to: email, subject, html });
   }
+
+  async sendCollaboratorInvite(
+    email: string,
+    collaboratorName: string,
+    rfpTitle: string,
+    ownerName: string,
+    inviteLink: string
+  ): Promise<void> {
+    const subject = `You've been invited to collaborate on "${rfpTitle}" - RFP AI`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, #3b82f6, #2563eb);
+              color: white;
+              padding: 30px;
+              text-align: center;
+              border-radius: 8px 8px 0 0;
+            }
+            .content {
+              background: #f9fafb;
+              padding: 30px;
+              border-radius: 0 0 8px 8px;
+            }
+            .button {
+              display: inline-block;
+              padding: 12px 30px;
+              background: #3b82f6;
+              color: white;
+              text-decoration: none;
+              border-radius: 6px;
+              margin: 20px 0;
+            }
+            .footer {
+              text-align: center;
+              color: #6b7280;
+              font-size: 12px;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Collaboration Invitation</h1>
+          </div>
+          <div class="content">
+            <p>Hi ${collaboratorName},</p>
+            <p><strong>${ownerName}</strong> has invited you to collaborate on the RFP document:</p>
+            <p style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6;">
+              <strong>${rfpTitle}</strong>
+            </p>
+            <p>Click the button below to view the invitation and start collaborating:</p>
+            <div style="text-align: center;">
+              <a href="${inviteLink}" class="button">View Invitation</a>
+            </div>
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="color: #6b7280; word-break: break-all;">${inviteLink}</p>
+            <p>If you didn't expect this invitation, you can safely ignore this email.</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated email from RFP AI. Please do not reply to this email.</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    await this.sendEmail({ to: email, subject, html });
+  }
 }
 
-export default new EmailService();
+export default EmailService;
 

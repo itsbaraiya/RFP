@@ -25,14 +25,24 @@ const upload = multer({ storage });
 router.post("/upload", authMiddleware, upload.single("rfp"), RFPController.upload);
 router.get("/", authMiddleware, RFPController.getAll);
 router.post("/generate", authMiddleware, RFPController.generateAI);
-router.post("/analyze/:rfpId", authMiddleware, RFPController.analyze);
+router.post("/create-draft", authMiddleware, RFPController.createDraft);
+router.post("/ai-chat", authMiddleware, AIChatController.chat);
 // Get all RFPs with collaborators (must be before dynamic routes)
 router.get("/with-collaborators", authMiddleware, RFPController.getAllRFPsWithCollaborators);
+// Get pending invites for current user
+router.get("/pending-invites", authMiddleware, RFPController.getPendingInvites);
+// Dynamic routes - order matters!
+router.post("/:id/analyze", authMiddleware, RFPController.analyze);
+router.get("/:id/questions", authMiddleware, RFPController.getQuestions);
 router.get("/:id/collaborators", authMiddleware, RFPController.getCollaborators);
 router.post("/:id/collaborators", authMiddleware, RFPController.addCollaborator);
+router.post("/:id/collaborators/accept", authMiddleware, RFPController.acceptInvite);
+router.post("/:id/collaborators/reject", authMiddleware, RFPController.rejectInvite);
+router.get("/:id/comments", authMiddleware, RFPController.getComments);
+router.post("/:id/comments", authMiddleware, RFPController.addComment);
+router.get("/:id/activities", authMiddleware, RFPController.getActivities);
+router.put("/:id", authMiddleware, RFPController.updateRFP);
 router.delete("/:id", authMiddleware, RFPController.deleteRFP);
-router.get("/:id/questions", authMiddleware, RFPController.getQuestions);
-router.post("/ai-chat", authMiddleware, AIChatController.chat);
 
 
 // router.delete("/:id/collaborators/:userId", authMiddleware, RFPController.removeCollaborator);

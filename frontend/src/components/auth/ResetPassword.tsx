@@ -9,33 +9,34 @@ import successAnimation from "../../assets/lottie/Success.json";
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
-
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const token = searchParams.get("token");
 
   const particles = Array.from({ length: 30 });
 
   useEffect(() => {
     if (!token) {
-      setError("Invalid reset link. Please request a new password reset.");
+      setError("Invalid or missing reset token. Please request a new password reset.");
     }
   }, [token]);
+
+  const isValidPassword = (pwd: string) => pwd.length >= 8;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (!token) {
-      setError("Invalid reset link. Please request a new password reset.");
+      setError("Invalid reset token");
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+    if (!isValidPassword(password)) {
+      setError("Password must be at least 8 characters long.");
       return;
     }
 
@@ -46,75 +47,17 @@ const ResetPassword: React.FC = () => {
 
     setLoading(true);
     try {
-      await api.post("/auth/reset-password", {
-        token,
-        password,
-      });
+      await api.post("/auth/reset-password", { token, password });
       setSuccess(true);
       setTimeout(() => {
-        navigate("/login");
+        navigate("/login", { replace: true });
       }, 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to reset password. Please try again.");
+      setError(err.response?.data?.message || "Failed to reset password. The token may have expired.");
     } finally {
       setLoading(false);
     }
   };
-
-  if (!token) {
-    return (
-      <div className="login-container">
-        <div className="particles">
-          {particles.map((_, i) => (
-            <span
-              key={i}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                width: `${2 + Math.random() * 3}px`,
-                height: `${2 + Math.random() * 3}px`,
-                animationDuration: `${10 + Math.random() * 20}s`,
-              }}
-            />
-          ))}
-        </div>
-        <Container fluid className="h-100">
-          <Row className="h-100 g-0">
-            <Col xs={12} md={6} className="form-side d-flex align-items-center justify-content-center">
-              <div className="login-form">
-                <h2>Invalid Reset Link</h2>
-                <p className="subtitle">This password reset link is invalid or has expired.</p>
-                {error && <div className="alert alert-danger">{error}</div>}
-                <button
-                  type="button"
-                  onClick={() => navigate("/forgot-password")}
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem 1rem",
-                    background: "linear-gradient(135deg, #00bfff, #0066ff)",
-                    color: "#fff",
-                    fontWeight: 600,
-                    border: "none",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    marginTop: "1rem",
-                  }}
-                >
-                  Request New Reset Link
-                </button>
-                <p className="signup-paragraph" style={{ marginTop: "1rem" }}>
-                  <a href="/login">Back to Login</a>
-                </p>
-              </div>
-            </Col>
-            <Col xs={12} md={6} className="image-side d-none d-md-block">
-              <img src="/Images/register/login.jpeg" alt="RFP AI Illustration" />
-            </Col>
-          </Row>
-        </Container>
-      </div>
-    );
-  }
 
   return (
     <div className="login-container">
@@ -152,24 +95,24 @@ const ResetPassword: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        disabled={loading}
-                        minLength={6}
+                        disabled={loading || !token}
+                        minLength={8}
                       />
                     </div>
                     <div className="input-wrapper">
                       <FaLock className="input-icon" />
                       <input
                         type="password"
-                        placeholder="Confirm New Password"
+                        placeholder="Confirm Password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        disabled={loading}
-                        minLength={6}
+                        disabled={loading || !token}
+                        minLength={8}
                       />
                     </div>
 
-                    <button type="submit" disabled={loading}>
+                    <button type="submit" disabled={loading || !token}>
                       {loading ? "Resetting..." : "Reset Password"}
                     </button>
                   </form>
@@ -181,9 +124,9 @@ const ResetPassword: React.FC = () => {
               ) : (
                 <div className="lottie-success">
                   <Lottie animationData={successAnimation} loop={false} />
-                  <p>Password Reset Successful!</p>
+                  <p>Password reset successful!</p>
                   <p style={{ fontSize: "0.9rem", color: "#aaa", marginTop: "0.5rem" }}>
-                    Redirecting to login page...
+                    Redirecting to login...
                   </p>
                 </div>
               )}
