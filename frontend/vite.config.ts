@@ -17,6 +17,14 @@ export default defineConfig({
     },
   },
 
+  optimizeDeps: {
+    exclude: ["jspdf"],
+  },
+
+  worker: {
+    format: "es",
+  },
+
   build: {
     rollupOptions: {
       output: {

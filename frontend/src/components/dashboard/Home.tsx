@@ -381,7 +381,7 @@ const getStatusBadgeClass = (status: string) => {
                     <tbody>
                       {paginatedProposals.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="text-center py-4 text-muted">
+                          <td colSpan={4} className="text-center py-4">
                             No proposals yet. Create your first RFP!
                           </td>
                         </tr>

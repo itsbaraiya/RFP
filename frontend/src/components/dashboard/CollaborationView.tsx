@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Row, Col, Button, Spinner } from "react-bootstrap";
+import { Row, Col, Button, Spinner, Alert } from "react-bootstrap";
 import {
   Share2,
   History,
@@ -7,8 +7,11 @@ import {
   Lightbulb,
   ArrowRight,
   X,
+  FileQuestion,
 } from "lucide-react";
 import api from "../../api/axios";
+import QuestionsManagement from "../rfp/QuestionsManagement";
+import ErrorBoundary from "../rfp/ErrorBoundary";
 
 interface Collaborator {
   id: number;
@@ -57,7 +60,8 @@ interface CollaborationViewProps {
 }
 
 const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) => {
-  const [activeTab, setActiveTab] = useState<"comments" | "activity">("comments");
+  const [activeTab, setActiveTab] = useState<"questions" | "comments" | "activity">("questions");
+  const [userId, setUserId] = useState<number | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -65,13 +69,32 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchComments();
-    fetchActivities();
-    generateAISuggestion();
+    // Get user ID from localStorage
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUserId(parsedUser.id);
+      } else {
+        setError("User not found. Please log in again.");
+      }
+    } catch (err) {
+      console.error("Error parsing user:", err);
+      setError("Failed to load user information.");
+    }
+    
+    if (rfp?.id) {
+      fetchComments();
+      fetchActivities();
+      generateAISuggestion();
+    } else {
+      setError("Invalid RFP data.");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rfp.id]);
+  }, [rfp?.id]);
 
   const fetchComments = async () => {
     setLoading(true);
@@ -166,7 +189,61 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
       .slice(0, 2);
   };
 
-  const activeCollaborators = rfp.collaborators.filter((c) => c.status === "ACCEPTED");
+  // Safety checks
+  if (!rfp || !rfp.id) {
+    return (
+      <div className="collaboration-view p-4">
+        <Alert variant="danger">
+          <strong>Error:</strong> Invalid RFP data. Please go back and try again.
+        </Alert>
+        <Button variant="outline-secondary" onClick={onClose} className="mt-3">
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="collaboration-view p-4">
+        <Alert variant="warning">
+          <strong>Warning:</strong> {error}
+        </Alert>
+        <Button variant="outline-secondary" onClick={onClose} className="mt-3">
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
+  // Safety checks
+  if (!rfp || !rfp.id) {
+    return (
+      <div className="collaboration-view p-4">
+        <Alert variant="danger">
+          <strong>Error:</strong> Invalid RFP data. Please go back and try again.
+        </Alert>
+        <Button variant="outline-secondary" onClick={onClose} className="mt-3">
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="collaboration-view p-4">
+        <Alert variant="warning">
+          <strong>Warning:</strong> {error}
+        </Alert>
+        <Button variant="outline-secondary" onClick={onClose} className="mt-3">
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
+  const activeCollaborators = (rfp.collaborators || []).filter((c: any) => c.status === "ACCEPTED");
 
   return (
     <div className="collaboration-view">
@@ -290,6 +367,13 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
             {/* Tabs */}
             <div className="collaboration-hub__tabs">
               <button
+                className={`tab ${activeTab === "questions" ? "active" : ""}`}
+                onClick={() => setActiveTab("questions")}
+              >
+                <FileQuestion size={16} className="me-1" />
+                Questions
+              </button>
+              <button
                 className={`tab ${activeTab === "comments" ? "active" : ""}`}
                 onClick={() => setActiveTab("comments")}
               >
@@ -303,7 +387,22 @@ const CollaborationView: React.FC<CollaborationViewProps> = ({ rfp, onClose }) =
               </button>
             </div>
 
-            {/* Comments Tab */}
+            {/* Questions Tab */}
+            {activeTab === "questions" && userId ? (
+              <div className="collaboration-hub__content" style={{ padding: 0, height: "100%", overflow: "auto" }}>
+                <ErrorBoundary>
+                  <QuestionsManagement rfpId={rfp.id} userId={userId} />
+                </ErrorBoundary>
+              </div>
+            ) : activeTab === "questions" ? (
+              <div className="collaboration-hub__content">
+                <div className="text-center py-4">
+                  <Spinner animation="border" size="sm" />
+                  <p className="mt-2">Loading...</p>
+                </div>
+              </div>
+            ) : null}
+
             {activeTab === "comments" && (
               <div className="collaboration-hub__content">
                 {loading ? (

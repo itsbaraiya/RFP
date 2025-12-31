@@ -1,7 +1,7 @@
 .section-header {
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid $divider-color;
+  border-bottom: 1px solid var(--border-color);
 
   &__title {
     display: flex;
@@ -11,6 +11,7 @@
     h1 {
       font-weight: $semi-bold-weight;
       margin: 0;
+      color: var(--text-primary);
     }
 
     svg {
@@ -19,7 +20,7 @@
   }
 
   &__subtitle {
-    color: $subtitle-color;
+    color: var(--text-secondary);
     font-size: 14px;
     margin: 15px 0;    
   }

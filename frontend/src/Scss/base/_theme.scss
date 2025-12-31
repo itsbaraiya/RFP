@@ -1,0 +1,43 @@
+//****************************************************************************
+//  Theme System - Light/Dark Mode Support
+//  Light theme is default, dark theme activates with .dark class on html
+//***************************************************************************/
+
+// Light Theme (Default)
+:root {
+  --bg-primary: #{$light-bg};
+  --bg-secondary: #{$light-bg-secondary};
+  --bg-sidebar: #{$light-sidebar-bg};
+  --bg-header: #{$light-header-bg};
+  --bg-input: #{$light-input-bg};
+  
+  --text-primary: #{$light-text};
+  --text-secondary: #{$light-text-secondary};
+  
+  --border-color: #{$light-border};
+  --input-border: #{$light-input-border};
+  
+  --card-bg: #{$light-bg-secondary};
+  --card-border: #{$light-border};
+  --card-hover: #{darken($light-bg-secondary, 2%)};
+}
+
+// Dark Theme
+.dark {
+  --bg-primary: #{$dark-bg};
+  --bg-secondary: #{$dark-bg-secondary};
+  --bg-sidebar: #{$dark-sidebar-bg};
+  --bg-header: #{$dark-header-bg};
+  --bg-input: #{$dark-input-bg};
+  
+  --text-primary: #{$dark-text};
+  --text-secondary: #{$dark-text-secondary};
+  
+  --border-color: #{$dark-border};
+  --input-border: #{$dark-input-border};
+  
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover: rgba(255, 255, 255, 0.08);
+}
+

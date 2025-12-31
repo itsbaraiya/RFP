@@ -15,10 +15,16 @@
     align-items: center;
     gap: 12px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--card-border);
     border-radius: 12px;
     transition: all 0.3s ease;
+
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
 
     &:hover {
       background: rgba(255, 255, 255, 0.08);
@@ -29,16 +35,25 @@
       color: #3b82f6;
       min-width: 24px;
     }
+
     h3 {
       margin: 0;
       font-size: 20px;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-secondary);
+
+      .dark & {
+        color: #fff;
+      }
     }
     p {
       margin: 0;
       font-size: 13px;
-      color: #9ca3af;
+      color: var(--text-secondary);
+
+      .dark & {
+        color: var(--text-secondary);
+      }
     }
   }
 
@@ -54,15 +69,21 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
 
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
     &:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--card-hover);
+      border-color: var(--card-border);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
@@ -83,13 +104,20 @@
       margin: 0 0 4px 0;
       font-size: 16px;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-secondary);
+
+      .dark & {
+        color: #fff;
+      }
     }
 
     p {
       margin: 0;
       font-size: 13px;
       color: #9ca3af;
+      .dark & {
+        color: var(--text-secondary);
+      }
     }
   }
 
@@ -132,7 +160,10 @@
         padding: 12px 0;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
         font-size: 14px;
-        color: #fff;
+        color: var(--text-secondary);
+        .dark & {
+          color: #fff;
+        }
       }
     }
 

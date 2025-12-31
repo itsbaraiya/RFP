@@ -1,7 +1,7 @@
 .collaboration-view {
   height: calc(100vh - 80px);
-  background: #1a1a2e;
-  color: #fff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   overflow: hidden;
 
   .row {
@@ -11,8 +11,8 @@
   &__editor {
     height: 100%;
     overflow-y: auto;
-    background: #1a1a2e;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-color);
     padding: 0 !important;
 
     &::-webkit-scrollbar {
@@ -70,7 +70,7 @@
     align-items: flex-start;
     margin-bottom: 24px;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
   }
 
   &__title-section {
@@ -80,13 +80,13 @@
       margin: 0 0 8px 0;
       font-size: 24px;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-primary);
     }
   }
 
   &__meta {
     font-size: 13px;
-    color: #9ca3af;
+    color: var(--text-secondary);
 
     span {
       display: flex;
@@ -116,7 +116,7 @@
     gap: 12px;
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-color);
   }
 }
 
@@ -125,7 +125,7 @@
     font-size: 20px;
     font-weight: 600;
     margin: 24px 0 12px 0;
-    color: #fff;
+    color: var(--text-primary);
 
     &:first-child {
       margin-top: 0;
@@ -135,7 +135,7 @@
   p {
     font-size: 15px;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-primary);
     margin-bottom: 16px;
   }
 
@@ -146,7 +146,7 @@
     li {
       font-size: 15px;
       line-height: 1.6;
-      color: rgba(255, 255, 255, 0.8);
+      color: var(--text-primary);
       margin-bottom: 8px;
     }
   }
@@ -175,7 +175,7 @@
   &__content {
     font-size: 14px;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
     margin-bottom: 12px;
   }
 
@@ -197,14 +197,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--card-bg);
 
   &__header {
     padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
 
     h3 {
-      color: #fff;
+      color: var(--text-primary);
       font-size: 1.25rem;
       font-weight: 600;
       margin: 0;
@@ -223,7 +223,7 @@
 
   &__label {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-secondary);
     margin-bottom: 12px;
   }
 
@@ -232,13 +232,13 @@
     gap: 0;
     padding: 0 1.5rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
 
     .tab {
       padding: 10px 16px;
       background: transparent;
       border: none;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-secondary);
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
@@ -247,7 +247,7 @@
       margin-bottom: -1px;
 
       &:hover {
-        color: #fff;
+        color: var(--text-primary);
       }
 
       &.active {
@@ -301,9 +301,9 @@
   }
 
   &.collaborator-avatar-more {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    border-color: var(--card-border);
   }
 }
 
@@ -330,7 +330,7 @@
   }
 
   &:not(.comment--own) {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     align-self: flex-start;
   }
 
@@ -352,18 +352,18 @@
   &__author {
     font-weight: 600;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-primary);
   }
 
   &__time {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary);
   }
 
   &__text {
     font-size: 15px;
     line-height: 1.6;
-    color: #fff;
+    color: var(--text-primary);
     margin: 0;
   }
 }
@@ -373,22 +373,22 @@
   align-items: center;
   gap: 10px;
   padding: 10px 5px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg);
   margin-top: auto;
 
   input {
     flex: 1;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-input);
+    border: 1px solid var(--input-border);
     border-radius: 8px;
     padding: 0.75rem 1rem;
-    color: #fff;
+    color: var(--text-primary);
     outline: none;
     font-size: 15px;
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--text-secondary);
     }
 
     &:focus {
@@ -418,7 +418,7 @@
 .activity-item {
   padding: 1rem;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
   align-self: flex-start;
   max-width: 85%;
 
@@ -433,18 +433,18 @@
   &__text {
     font-size: 15px;
     line-height: 1.6;
-    color: #fff;
+    color: var(--text-primary);
     margin: 0 0 4px 0;
 
     strong {
-      color: #fff;
+      color: var(--text-primary);
       font-weight: 600;
     }
   }
 
   &__time {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary);
   }
 }
 
@@ -453,7 +453,7 @@
   .collaboration-view {
     &__editor {
       border-right: none;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border-color);
       height: 50vh;
     }
 

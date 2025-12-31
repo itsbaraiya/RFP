@@ -141,7 +141,7 @@ export class RFPService {
     }));
   }
 
-static async analyze(rfpId: number) {
+static async analyze(rfpId: number, aiPrompt?: string) {
   // ---------------- Validate RFP ----------------
   const rfp = await prisma.rFP.findUnique({ where: { id: rfpId } });
   if (!rfp) throw new Error("RFP not found");
@@ -180,29 +180,51 @@ static async analyze(rfpId: number) {
   }
 
   // ---------------- Instruction for AI ----------------
-  const instruct = (chunk: string) => `
-You are an AI assistant that analyzes RFP documents.
+  const instruct = (chunk: string, isFirstChunk: boolean = false) => {
+    const promptEnhancement = aiPrompt ? `\n\nADDITIONAL REQUIREMENTS/ENHANCEMENTS:\n${aiPrompt}\n\nPlease incorporate these requirements when generating questions and suggestions.` : '';
+    
+    return `
+You are an AI assistant that analyzes RFP documents. Your task is to:
+
+1. EXTRACT all existing questions that are already in the document (look for question marks, numbered questions, "Q:", "Vendor Questions", bullet points with "?", etc.)
+2. GENERATE additional clarifying questions based on the content, gaps, and best practices
+3. Provide suggestions for missing items
 
 Return ONLY valid JSON:
 
 {
-  "summary": "1 short paragraph summary",
-  "key_requirements": ["..."],
-  "sections": ["..."],
+  "summary": "1 short paragraph summary of the entire RFP",
+  "key_requirements": ["List of key requirements mentioned"],
+  "sections": ["List of section names found in the document"],
   "questions": [
       {
-        "question": "Write a clear clarifying question",
-        "suggestedAnswer": "Short 1-2 line AI answer",
-        "section": "Optional section name"
+        "question": "Extract existing questions from the document OR generate new clarifying questions",
+        "suggestedAnswer": "Short 1-2 line AI answer based on document content",
+        "section": "Section name if question belongs to a specific section",
+        "isExtracted": true or false (true if question was found in document, false if generated)
       }
   ],
-  "risks": ["..."],
-  "missing_items": ["..."]
+  "risks": ["Potential risks or concerns identified"],
+  "missing_items": ["Important items that should be included but are missing"],
+  "suggestions": ["Additional questions or requirements that would strengthen this RFP"]
 }
+
+CRITICAL EXTRACTION RULES:
+- Look for sections titled "Questions", "Vendor Questions", "Proposal Questions", "Requirements", etc.
+- Extract questions that end with "?" or are in numbered/bulleted lists
+- Look for patterns like: "What...?", "How...?", "Which...?", "When...?", "Where...?", "Who...?", "Why...?"
+- Extract questions even if they're embedded in paragraphs or lists
+- For each extracted question, set "isExtracted": true
+- Generate at least 5-10 additional clarifying questions based on gaps, unclear areas, and best practices
+- Set "isExtracted": false for AI-generated questions
+- Include suggestions from "missing_items" as additional questions if relevant
+- Generate questions about: technical specifications, timeline, budget, support, security, compliance, integration, scalability, etc.
+${promptEnhancement}
 
 RFP TEXT:
 ${chunk}
 `;
+  };
 
   // ---------------- Prepare Aggregated Structure ----------------
   let aggregated = {
@@ -213,16 +235,19 @@ ${chunk}
       question: string;
       suggestedAnswer: string;
       section?: string;
+      isExtracted?: boolean;
     }[],
     risks: [] as string[],
     missing_items: [] as string[],
   };
 
   // ---------------- Process Chunk by Chunk ----------------
-  for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    const isFirstChunk = i === 0;
     const aiResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: instruct(chunk) }],
+      messages: [{ role: "user", content: instruct(chunk, isFirstChunk) }],
       temperature: 0,
     });
 
@@ -252,17 +277,46 @@ ${chunk}
     aggregated.questions.push(...(parsed.questions || []));
     aggregated.risks.push(...(parsed.risks || []));
     aggregated.missing_items.push(...(parsed.missing_items || []));
+    
+    // Convert suggestions to questions if provided
+    if (parsed.suggestions && Array.isArray(parsed.suggestions)) {
+      parsed.suggestions.forEach((suggestion: string) => {
+        if (suggestion.trim()) {
+          aggregated.questions.push({
+            question: suggestion.trim(),
+            suggestedAnswer: "To be determined based on project requirements",
+            section: null,
+            isExtracted: false,
+          });
+        }
+      });
+    }
   }
 
   // ---------------- Remove Duplicate Text ----------------
   const unique = (arr: string[]) =>
     Array.from(new Set(arr.map((x) => x.trim()).filter(Boolean)));
 
+  // Convert missing_items to questions if they're not already questions
+  aggregated.missing_items.forEach((item: string) => {
+    if (item.trim() && !aggregated.questions.some((q: any) => 
+      q.question.toLowerCase().includes(item.toLowerCase().slice(0, 20))
+    )) {
+      aggregated.questions.push({
+        question: `Should this RFP include: ${item.trim()}?`,
+        suggestedAnswer: "To be determined based on project requirements",
+        section: null,
+        isExtracted: false,
+      });
+    }
+  });
+
   const finalQuestions = aggregated.questions
-    .map((q) => ({
+    .map((q: any) => ({
       question: (q.question || "").trim(),
       suggestedAnswer: (q.suggestedAnswer || "").trim(),
       section: q.section?.trim() || null,
+      isExtracted: q.isExtracted !== undefined ? q.isExtracted : false,
     }))
     .filter((q) => q.question.length > 0);
 
@@ -289,14 +343,27 @@ ${chunk}
   });
 
   // ---------------- Final Response ----------------
+  const extractedCount = finalQuestions.filter((q: any) => q.isExtracted).length;
+  const generatedCount = finalQuestions.filter((q: any) => !q.isExtracted).length;
+
   return {
     message: "RFP analyzed successfully",
     summary: aggregated.summary.trim(),
     key_requirements: unique(aggregated.key_requirements),
     sections: unique(aggregated.sections),
-    questions: finalQuestions,
+    questions: finalQuestions.map((q: any) => ({
+      question: q.question,
+      suggestedAnswer: q.suggestedAnswer,
+      section: q.section,
+      // Don't include isExtracted in response, it's internal
+    })),
     risks: unique(aggregated.risks),
     missing_items: unique(aggregated.missing_items),
+    stats: {
+      totalQuestions: finalQuestions.length,
+      extractedQuestions: extractedCount,
+      generatedQuestions: generatedCount,
+    },
   };
 }
 
@@ -311,7 +378,13 @@ static async getQuestions(rfpId: number) {
           questionText: true,
           aiSuggestedAnswer: true,
           userEditedAnswer: true,
+          finalAnswer: true, // New field (backward compatible)
           section: true,
+          status: true, // New field (backward compatible)
+          complianceStatus: true, // New field (backward compatible)
+          confidenceScore: true, // New field (backward compatible)
+          assignedEditorId: true, // New field (backward compatible)
+          assignedReviewerId: true, // New field (backward compatible)
           createdAt: true,
           updatedAt: true,
         },
@@ -322,18 +395,25 @@ static async getQuestions(rfpId: number) {
 
   if (!rfp) throw new Error("RFP not found");
 
-  // Map DB Question rows to API-friendly shape
+  // Map DB Question rows to API-friendly shape (backward compatible)
   const questions = (rfp.questions || []).map((q) => ({
     id: q.id,
     questionText: q.questionText,
     aiSuggestedAnswer: q.aiSuggestedAnswer || "",
     userEditedAnswer: q.userEditedAnswer || "",
+    finalAnswer: q.finalAnswer || null, // New field
     section: q.section || null,
+    status: q.status || "DRAFT", // New field with default
+    complianceStatus: q.complianceStatus || null, // New field
+    confidenceScore: q.confidenceScore || null, // New field
+    assignedEditorId: q.assignedEditorId || null, // New field
+    assignedReviewerId: q.assignedReviewerId || null, // New field
     createdAt: q.createdAt,
     updatedAt: q.updatedAt,
   }));
 
   // Return standardized object: { summary, questions }
+  // Backward compatible - existing frontend code will still work
   return {
     summary: rfp.description || "",
     questions,
@@ -659,7 +739,7 @@ Return ONLY plain text.
       data: {
         rfpId,
         userId: collaboratorUser.id,
-        role: "Collaborator",
+        role: "VIEWER", // Use enum value instead of string
         status: "INVITED",
         invitedAt: new Date(),
       },
@@ -690,8 +770,7 @@ Return ONLY plain text.
       }
     } catch (emailErr: any) {
       console.error("❌ Failed to send invitation email:", emailErr);
-      console.error("   Error details:", emailErr.message || emailErr);
-      // Don't fail the request if email fails - collaborator is still added
+      console.error("   Error details:", emailErr.message || emailErr);      
     }
 
     // Create activity log

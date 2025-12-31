@@ -11,8 +11,17 @@
     align-items: center;
     gap: 12px;
     padding: 16px;
-    background: #1f1f2e;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
 
     svg {
       color: #6366f1;
@@ -39,9 +48,16 @@
   }
 
   .library-card {
-    background: #1f1f2e;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 12px;
     padding: 16px;
+
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
 
     h4 {
       margin-bottom: 6px;

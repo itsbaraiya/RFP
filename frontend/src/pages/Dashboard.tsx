@@ -24,6 +24,8 @@ import {
   Search,
   Settings,
   FileText,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 type MenuItem = {
@@ -42,6 +44,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [isDark, setIsDark] = useState(false);
 
   const { logout } = useAuth();
 
@@ -52,6 +55,17 @@ const Dashboard = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
+    
+    // Initialize theme
+    const savedTheme = localStorage.getItem("theme") || "light";
+    const html = document.documentElement;
+    const darkMode = savedTheme === "dark";
+    setIsDark(darkMode);
+    if (darkMode) {
+      html.classList.add("dark");
+    } else {
+      html.classList.remove("dark");
+    }
     
     // Handle tab from URL query params
     const urlParams = new URLSearchParams(window.location.search);
@@ -146,6 +160,36 @@ const Dashboard = () => {
               }
             />
           </div>
+          {/* Dark/Light Mode Toggle */}
+          <button
+            className="theme-toggle"
+            onClick={() => {
+              const html = document.documentElement;
+              const newIsDark = !isDark;
+              setIsDark(newIsDark);
+              if (newIsDark) {
+                html.classList.add("dark");
+                localStorage.setItem("theme", "dark");
+              } else {
+                html.classList.remove("dark");
+                localStorage.setItem("theme", "light");
+              }
+            }}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: "10px",
+              color: "inherit",
+            }}
+          >
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
           <div className="dashboard__user-profile">
             <img
               src={user?.avatar || getAvatarURL()}

@@ -2,8 +2,8 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: #1a1a2e;
-    color: #fff;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     overflow: hidden;
 
     // Top Header Bar
@@ -11,9 +11,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px;      
-      background-color: #16213e;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      background-color: var(--bg-header);
+      border-bottom: 1px solid var(--border-color);
       z-index: 100;
 
       &-left {
@@ -55,23 +55,23 @@
       font-size: 15px;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
-      background: rgba(255, 255, 255, 0.1);
+      background: var(--bg-input);
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--input-border);
 
       svg {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
       }
 
       input {
         background: transparent;
         border: none;
-        color: #fff;
+        color: var(--text-primary);
         outline: none;
         width: 200px;
 
         &::placeholder {
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-secondary);
         }
       }
     }
@@ -94,8 +94,8 @@
     .sidebar {
       display: flex;
       flex-direction: column;
-      background-color: #0f1624;
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
       width: 250px;
       justify-content: space-between;
 
@@ -107,7 +107,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
         font-size: 0.85rem;
         font-weight: 500;
         padding: 0.5rem;
@@ -133,17 +133,17 @@
             padding: 0.75rem 1rem;
             margin: 0.25rem 0.5rem;
             border-radius: 8px;
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s ease;
   
             &:hover {
-              background-color: rgba(255, 255, 255, 0.05);
-              color: #fff;
+              background-color: var(--card-hover);
+              color: var(--text-primary);
             }
   
             &.active {
-              background-color: #2563eb;
+              background-color: $primary-color;
               color: #fff;
               font-weight: 500;
             }
@@ -165,8 +165,8 @@
         align-items: center;
         gap: 0.75rem;
         padding: 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.02);
+        border-top: 1px solid var(--border-color);
+        background: var(--card-bg);
       }
 
       &__avatar {
@@ -174,7 +174,7 @@
         height: 40px;
         border-radius: 50%;
         object-fit: cover;
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        border: 2px solid var(--border-color);
       }
 
       &__user-info {
@@ -185,12 +185,12 @@
       &__user-name {
         font-weight: 600;
         font-size: 0.9rem;
-        color: #fff;        
+        color: var(--text-primary);
       }
 
       &__user-email {
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -198,7 +198,7 @@
   
       &__footer {
         padding: 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid var(--border-color);
         text-align: center;
   
         button {
@@ -219,8 +219,8 @@
       flex: 1;
       padding: 20px;
       padding-right: 0;
-      background-color: #1a1a2e;
-      color: #fff;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
       overflow-y: auto;
       
       &--proposalbuilder {
@@ -228,6 +228,11 @@
 
         .proposal-builder__left {
           padding:20px !important;
+          width: 80% !important;
+        }
+
+        .proposal-builder__right {          
+          width: 20% !important;
         }
       }
 
@@ -240,6 +245,8 @@
   // Customer Dashboard Styles
   .customer-dashboard {
     padding: 20px 25px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 
     .dashboard-header {
       margin-bottom: 2rem;
@@ -248,12 +255,12 @@
         font-size: 32px;
         line-height: 42px;
         font-weight: 700;
-        color: #fff;
+        color: var(--text-primary);
         margin-bottom: 0;
       }
 
       .dashboard-subtitle {
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
         font-size: 1rem;
         margin: 0;
       }
@@ -265,22 +272,23 @@
       .section-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--text-primary);
         margin-bottom: 1.5rem;
       }
     }
 
     // At a Glance Cards
     .glance-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 1.5rem;
       transition: all 0.3s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--card-hover);
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       &__header {
@@ -306,7 +314,7 @@
 
       &__title {
         font-size: 0.875rem;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
         font-weight: 500;
       }
@@ -314,13 +322,13 @@
       &__value {
         font-size: 2rem;
         font-weight: 700;
-        color: #fff;
+        color: var(--text-primary);
         margin-bottom: 0.25rem;
       }
 
       &__description {
         font-size: 0.875rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
         margin: 0;
       }
 
@@ -328,17 +336,17 @@
         width: 100%;
         padding: 0.75rem;
         background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-primary);
         cursor: pointer;
         transition: all 0.2s ease;
         font-size: 0.875rem;
         margin-top: 1rem;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.3);
+          background: var(--card-hover);
+          border-color: var(--card-border);
         }
       }
     }
@@ -359,10 +367,23 @@
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+
+      .dark & {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
 
       &.primary {
         background: #2563eb;
         color: #fff;
+
+        .dark & {
+          background: #1d4ed8;
+          color: #fff;
+        }
 
         &:hover {
           background: #1d4ed8;
@@ -371,53 +392,100 @@
 
       &.secondary {
         background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-secondary);
+        border: 1px solid var(--card-border);
+
+        .dark & {
+          background: rgba(255, 255, 255, 0.15);
+          color: var(--text-secondary);
+          border: 1px solid var(--card-border);
+          color: #fff;
+        }
 
         &:hover {
           background: rgba(255, 255, 255, 0.15);
+          .dark & {
+            background: #1d4ed8;
+            color: #fff;
+          }
         }
       }
     }
 
     // Analytics Cards
     .analytics-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 1.5rem;
+
+      .dark & {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
 
       &__title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       &__subtitle {
         font-size: 0.875rem;
         margin-bottom: 1.5rem;
+
+        .dark & {
+          color: #fff;
+        }
+      }
+
+      line {
+        &:not(.dark) {  
+          stroke: var(--text-secondary);
+        }
+      }
+
+      svg.recharts-surface text {
+        fill: var(--text-secondary);
+
+        .dark & {
+          fill: #fff;
+        }
       }
     }
 
     // Activity Card
     .activity-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 1.5rem;
 
       &__title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       &__subtitle {
         font-size: 0.875rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
         margin-bottom: 1.5rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       &__link {
@@ -440,20 +508,34 @@
     }
 
     .activity-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
       display: flex;
       align-items: flex-start;
       gap: 1rem;
+
+      .dark & {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
 
       &__icon {
         width: 36px;
         height: 36px;
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--card-bg);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
         flex-shrink: 0;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       &__content {
@@ -461,35 +543,57 @@
       }
 
       &__text {
-        color: #fff;
+        color: var(--text-secondary);
         margin-bottom: 0.25rem;
         font-size: 0.9rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       &__time {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
         font-size: 0.75rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
     }
 
     // Proposals Card
     .proposals-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 1.5rem;
+
+      .dark & {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
 
       &__title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       &__subtitle {
         font-size: 0.875rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
         margin-bottom: 1.5rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
     }
 
@@ -503,29 +607,33 @@
 
         thead {
           tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--card-border);
 
             th {
               padding: 0.75rem;
               text-align: left;
-              color: rgba(255, 255, 255, 0.7);
+              color: var(--text-secondary);
               font-weight: 500;
               font-size: 0.875rem;
+
+              .dark & {
+                color: #fff;
+              }
             }
           }
         }
 
         tbody {
           tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-color);
 
             &:hover {
-              background: rgba(255, 255, 255, 0.02);
+              background: var(--card-hover);
             }
 
             td {
               padding: 0.75rem;
-              color: #fff;
+              color: var(--text-primary);
               font-size: 0.875rem;
             }
           }
@@ -560,9 +668,13 @@
       justify-content: space-between;
       align-items: center;
       padding-top: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.7);
+      border-top: 1px solid var(--card-border);
+      color: var(--text-secondary);
       font-size: 0.875rem;
+
+      .dark & {
+        color: #fff;
+      }
 
       .pagination-controls {
         display: flex;
@@ -571,15 +683,24 @@
 
       .pagination-btn {
         padding: 0.5rem 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: var(--card-bg);
+        border: 1px solid var(--card-border); 
         border-radius: 6px;
-        color: #fff;
+        color: var(--text-secondary);
         cursor: pointer;
         transition: all 0.2s ease;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.15);
+          background: var(--card-hover);
+
+          .dark & {
+            background: var(--card-hover);
+          }
+        }
+
+        .dark & {
+          color: #fff;
+          background: var(--card-hover);
         }
       }
     }
@@ -588,15 +709,18 @@
   // Admin Dashboard Styles
   .admin-dashboard {
     padding: 25px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+
     .summary-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 1.5rem;
       transition: all 0.3s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--card-hover);
         transform: translateY(-2px);
       }
 
@@ -622,7 +746,7 @@
 
       &__title {
         font-size: 0.875rem;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
         font-weight: 500;
       }
@@ -630,20 +754,20 @@
       &__value {
         font-size: 2rem;
         font-weight: 700;
-        color: #fff;
+        color: var(--text-primary);
         margin-bottom: 0.25rem;
       }
 
       &__change {
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
         margin: 0;
       }
     }
 
     .admin-section {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 1.5rem;
       margin-bottom: 2rem;
@@ -655,13 +779,13 @@
       &__title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--text-primary);
         margin-bottom: 0.5rem;
       }
 
       &__subtitle {
         font-size: 0.875rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
         margin: 0;
       }
 
@@ -679,25 +803,25 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--bg-input);
+      border: 1px solid var(--input-border);
       border-radius: 8px;
       flex: 1;
       max-width: 300px;
 
       svg {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
       }
 
       input {
         background: transparent;
         border: none;
-        color: #fff;
+        color: var(--text-primary);
         outline: none;
         flex: 1;
 
         &::placeholder {
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-secondary);
         }
       }
     }
@@ -729,12 +853,12 @@
 
       thead {
         tr {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          border-bottom: 1px solid var(--border-color);
 
           th {
             padding: 1rem;
             text-align: left;
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
             font-weight: 500;
             font-size: 0.875rem;
           }
@@ -743,15 +867,15 @@
 
       tbody {
         tr {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          border-bottom: 1px solid var(--border-color);
 
           &:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--card-hover);
           }
 
           td {
             padding: 1rem;
-            color: #fff;
+            color: var(--text-primary);
             font-size: 0.875rem;
           }
         }
@@ -1095,8 +1219,12 @@
   .proposal-builder {
     height: calc(100vh - 80px);
     overflow: hidden;
-    background: #1a1a2e;
-    color: #fff;
+    color: var(--text-secondary);
+    
+    .dark & {
+      background: #1a1a2e;
+      color: #fff;
+    }
 
     &__left {
       height: 100%;
@@ -1158,7 +1286,11 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-secondary);
+
+      .dark & {
+        color: rgba(255, 255, 255, 0.6);
+      }
 
       .step-number {
         font-weight: 600;
@@ -1183,49 +1315,81 @@
     &__title {
       font-size: 1rem;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-secondary);
       margin-bottom: 0.25rem;
+
+      .dark & {
+        color: #fff;
+      }
     }
 
     &__description {
       font-size: 0.875rem;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-secondary);
       margin: 0;
+
+      .dark & {
+        color: rgba(255, 255, 255, 0.6);
+      }
     }
   }
 
   .proposal-details {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--input-border);
     border-radius: 12px;
     padding: 2rem;
     margin-bottom: 2rem;
 
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
     &__title {
       font-size: 1.25rem;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-secondary);
       margin-bottom: 2rem;
+
+      .dark & {
+        color: #fff;
+      }
     }
 
     .review-summary {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 8px;
       padding: 1.5rem;
       margin-top: 2rem;
 
-      h4 {
+      .dark & {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: #fff;
+      }
+
+      h4 {
+        color: var(--text-secondary);
         font-weight: 600;
         margin-bottom: 1rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       .summary-item {
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
         margin-bottom: 0.75rem;
         padding-bottom: 0.75rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--card-border);
+
+        .dark & {
+          color: #fff;
+        }
 
         &:last-child {
           border-bottom: none;
@@ -1234,34 +1398,55 @@
         }
 
         strong {
-          color: #fff;
+          color: var(--text-secondary);
           margin-right: 0.5rem;
+
+          .dark & {
+            color: #fff;
+          }
         }
       }
     }
 
     .form-label {
-      color: rgba(255, 255, 255, 0.8);
+      color: var(--text-secondary);
       font-weight: 500;
       margin-bottom: 0.5rem;
+
+      .dark & {
+        color: #fff;
+      }
     }
 
     .form-control {
       background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid var(--input-border);
       border-radius: 8px;
-      color: #fff;
+      color: var(--text-secondary);
       padding: 0.75rem;
+      
+      .dark & {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
 
       &:focus {
         background: rgba(255, 255, 255, 0.15);
         border-color: #2563eb;
-        color: #fff;
+        color: var(--text-secondary);
         box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       &::placeholder {
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
+
+        .dark & {
+          color: rgba(255, 255, 255, 0.5);
+        }
       }
     }
 
@@ -1386,47 +1571,74 @@
   }
 
   .proposal-preview {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--input-border);
+    color: var(--text-secondary);
     border-radius: 12px;
     padding: 2rem;
     margin-top: 2rem;
 
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
     &__title {
       font-size: 1.25rem;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-secondary);
       margin-bottom: 1.5rem;
+
+      .dark & {
+        color: #fff;
+      }
     }
 
     &__content {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--input-border);
       border-radius: 8px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
       min-height: 300px;
 
-      h4 {
+      .dark & {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: #fff;
+      }
+
+      h4 {
+        color: var(--text-secondary);
         font-weight: 600;
         margin-bottom: 1rem;
+
+        .dark & {
+          color: #fff;
+        }
       }
 
       .preview-section {
         margin-bottom: 1.5rem;
 
         h5 {
-          color: rgba(255, 255, 255, 0.9);
+          color: var(--text-secondary);
           font-weight: 600;
           margin-bottom: 0.5rem;
           font-size: 1rem;
+
+          .dark & {
+            color: #fff;
+          }
         }
 
         p {
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--text-secondary);
           line-height: 1.6;
           margin: 0;
+
+          .dark & {            
+            color: #fff;
+          }
         }
       }
     }

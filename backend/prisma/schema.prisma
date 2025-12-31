@@ -24,6 +24,10 @@ model User {
   passwordResets    PasswordResetToken[]
   rfpComments       RFPComment[]
   rfpActivities     RFPActivity[]
+  editedQuestions   Question[]           @relation("QuestionEditor")
+  reviewedQuestions Question[]            @relation("QuestionReviewer")
+  answerVersions    AnswerVersion[]
+  rfpTemplates      RFPTemplate[]
 }
 
 model RFP {
@@ -44,23 +48,49 @@ model RFP {
 }
 
 model Question {
-  id                Int      @id @default(autoincrement())
+  id                Int               @id @default(autoincrement())
   rfpId             Int
   questionText      String
   aiSuggestedAnswer String?
   userEditedAnswer  String?
+  finalAnswer       String?           // The approved/active answer
   section           String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  rfp               RFP      @relation(fields: [rfpId], references: [id])
+  status            QuestionStatus    @default(DRAFT)
+  complianceStatus  ComplianceStatus? // Nullable for backward compatibility
+  confidenceScore   Int?              // 0-100, nullable for backward compatibility
+  sources           Json?             // Array of source references
+  tags              Json?             // Array of tags for categorization
+  wordCount         Int?              // Required word count if specified
+  assignedEditorId  Int?
+  assignedReviewerId Int?
+  submittedAt       DateTime?
+  approvedAt        DateTime?
+  rejectedAt        DateTime?
+  rejectionReason   String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Relations
+  rfp               RFP               @relation(fields: [rfpId], references: [id], onDelete: Cascade)
+  assignedEditor    User?              @relation("QuestionEditor", fields: [assignedEditorId], references: [id])
+  assignedReviewer  User?              @relation("QuestionReviewer", fields: [assignedReviewerId], references: [id])
+  answerSources     AnswerSource[]
+  answerVersions    AnswerVersion[]
+  
+  @@index([rfpId])
+  @@index([status])
+  @@index([complianceStatus])
+  @@index([assignedEditorId])
+  @@index([assignedReviewerId])
 }
 
 model RFPCollaborator {
   id          Int                @id @default(autoincrement())
   rfpId       Int
   userId      Int
-  role        String?            @default("Collaborator")
+  role        CollaboratorRole   @default(VIEWER) // Changed from String to enum
   status      CollaboratorStatus @default(INVITED)
+  permissions Json?              // Granular permissions as JSON
   inviteToken String?
   invitedAt   DateTime?
   acceptedAt  DateTime?
@@ -68,6 +98,9 @@ model RFPCollaborator {
   user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([rfpId, userId])
+  @@index([rfpId])
+  @@index([userId])
+  @@index([role])
 }
 
 enum Role {
@@ -103,6 +136,34 @@ enum CollaboratorStatus {
   REVOKED
 }
 
+enum QuestionStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum ComplianceStatus {
+  COMPLIANT
+  NON_COMPLIANT
+  PARTIAL
+  NOT_APPLICABLE
+}
+
+enum CollaboratorRole {
+  EDITOR
+  REVIEWER
+  VIEWER
+  ADMIN
+}
+
+enum SourceType {
+  PREVIOUS_RESPONSE
+  CONTENT_LIBRARY
+  AI_GENERATED
+  MANUAL
+}
+
 model RFPComment {
   id        Int      @id @default(autoincrement())
   rfpId     Int
@@ -130,4 +191,53 @@ model RFPActivity {
   @@index([rfpId])
   @@index([userId])
   @@index([createdAt])
+}
+
+model AnswerSource {
+  id             Int        @id @default(autoincrement())
+  questionId     Int
+  sourceType     SourceType
+  sourceId       String?    // ID of the source (RFP ID, content library item ID, etc.)
+  sourceName     String     // Human-readable source name
+  relevanceScore Float?     // 0.0-1.0 relevance score
+  metadata       Json?      // Additional source metadata
+  createdAt      DateTime   @default(now())
+  question       Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([sourceType])
+}
+
+model AnswerVersion {
+  id         Int      @id @default(autoincrement())
+  questionId Int
+  answerText String
+  version    Int      @default(1)
+  createdBy  Int
+  createdAt  DateTime @default(now())
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  creator    User     @relation(fields: [createdBy], references: [id])
+
+  @@index([questionId])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@unique([questionId, version])
+}
+
+model RFPTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  category    String?
+  sections    Json?    // Array of section definitions
+  questions   Json?    // Predefined questions structure
+  isPublic    Boolean  @default(false)
+  createdBy   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creator     User     @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy])
+  @@index([category])
+  @@index([isPublic])
 }

@@ -24,11 +24,12 @@
 /* Glassmorphism Card */
 .rfp {
   &-card {
-    background: rgba(255,255,255,0.65);
+    background: var(--card-bg);
     padding: 25px;
     border-radius: 18px;
     box-shadow: 0px 6px 25px rgba(0,0,0,0.1);
     backdrop-filter: blur(8px);
+    border: 1px solid var(--card-border);
   }
         
   /* Inputs */
@@ -81,19 +82,21 @@
 .rfp-option-card {
   flex: 1;
   padding: 18px;
-  background: #f8f9fa;
+  background: var(--card-bg);
   border-radius: 14px;
   cursor: pointer;
   transition: 0.2s;
-  border: 2px solid transparent;
+  border: 2px solid var(--card-border);
+  color: var(--text-primary);
 }
 .rfp-option-card:hover {
   transform: translateY(-3px);
-  border-color: #0d6efd;
+  border-color: $primary-color;
+  background: var(--card-hover);
 }
 .rfp-option-card.selected {
-  border-color: #0d6efd;
-  background: #e9f2ff;
+  border-color: $primary-color;
+  background: var(--card-hover);
 }
 
 /* Buttons */

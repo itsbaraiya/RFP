@@ -97,8 +97,11 @@ export class RFPController {
         return res.status(400).json({ error: "Invalid RFP ID" });
       }
 
-      const analysis = await RFPService.analyze(rfpId);
-      return res.status(200).json(analysis);
+      // Get optional AI prompt from request body for enhancement
+      const aiPrompt = req.body?.aiPrompt || req.body?.prompt || undefined;
+
+      const analysis = await RFPService.analyze(rfpId, aiPrompt);
+      return res.status(200).json({ rfp: { id: rfpId }, ...analysis });
 
     } catch (err: any) {
       return res.status(500).json({ error: err.message || "Failed to analyze RFP" });
